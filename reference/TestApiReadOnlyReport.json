@@ -1,0 +1,795 @@
+[
+ {
+  "endpoint": "/account/user!status.action",
+  "label": "本人账号状态",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/account/user!readSimpleUser.action",
+  "label": "用户简要信息",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/system/dict!getComboStore.action",
+  "label": "字典下拉",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/system/dict!getTree.action",
+  "label": "树状字典",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "list",
+    "rows": 2
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "list",
+    "rows": 2
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/system/weather!getWeather.action",
+  "label": "校园天气",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": false,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": false,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/system/attachment!readByUser.action",
+  "label": "最近上传附件",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/edu/school-term!getComboStore.action",
+  "label": "学期列表",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/edu/class!getComboStore.action",
+  "label": "班级列表",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/edu/grade!getComboStore.action",
+  "label": "年段列表",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/edu/subject!getComboStore.action",
+  "label": "科目列表",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/edu/grade!loadTree.action",
+  "label": "年级树",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "list",
+    "rows": 15
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "list",
+    "rows": 15
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/quality/quality!read.action",
+  "label": "综合素质评价总表",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": false,
+    "msg": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//E"
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": false,
+    "msg": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//E"
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/quality/quality-score-stat!read.action",
+  "label": "综评得分统计",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/score/student-score!read.action",
+  "label": "我的成绩",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": false,
+    "msg": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//E"
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": false,
+    "msg": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//E"
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/transcript/transcript!readByStudent.action",
+  "label": "我的成绩单",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/edu/module-score!read.action",
+  "label": "模块修习成绩",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/edu/physical-examination!readByStudent.action",
+  "label": "体能测试",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": false,
+    "msg": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//E"
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": false,
+    "msg": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//E"
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/edu/growth-record!read.action",
+  "label": "我的成长记录",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/edu/work!readByClass.action",
+  "label": "班级作业",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": false,
+    "msg": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//E"
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": false,
+    "msg": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//E"
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/edu/speciality!readByStudent.action",
+  "label": "特长信息",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/edu/match-awards!read.action",
+  "label": "比赛获奖",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/message/short-message!inbox.action",
+  "label": "短信收件箱",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/message/short-message!outbox.action",
+  "label": "短信发件箱",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/message/recipient!findUnread.action",
+  "label": "未读统计",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": null,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": null,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/message/recipient!statInfo.action",
+  "label": "收发统计",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": null,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": null,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/office/notification-feedback!read.action",
+  "label": "通知公告",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": false,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": false,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/community/community!loadTree.action",
+  "label": "社团树",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "list",
+    "rows": 0
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "list",
+    "rows": 0
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/community/member!readByStudent.action",
+  "label": "我参与的社团",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": false,
+    "msg": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//E"
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": false,
+    "msg": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//E"
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/community/member-evaluate!readByStudent.action",
+  "label": "成员评价",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/community/attendance!readByStudent.action",
+  "label": "社团考勤",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/community/property-borrow!read.action",
+  "label": "校产借出",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/volunteer/activity!readByParticipate.action",
+  "label": "我参与的志愿活动",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": false,
+    "msg": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//E"
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": false,
+    "msg": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//E"
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/volunteer/activity!read.action",
+  "label": "志愿活动列表",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": true,
+    "msg": ""
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/volunteer/sign!read.action",
+  "label": "志愿者签到",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": false,
+    "msg": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//E"
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": false,
+    "msg": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//E"
+   }
+  ],
+  "verdict": "ALIVE"
+ },
+ {
+  "endpoint": "/elective/elective-result!read.action",
+  "label": "选课结果",
+  "tries": [
+   {
+    "method": "GET",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": false,
+    "msg": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//E"
+   },
+   {
+    "method": "POST",
+    "parsed": true,
+    "kind": "dict",
+    "rows": null,
+    "success": false,
+    "msg": "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//E"
+   }
+  ],
+  "verdict": "ALIVE"
+ }
+]

@@ -1,0 +1,7 @@
+{
+  "_comment": "模板文件：登录后由 tools/Access/LoginSession.py 自动覆写。真实会话含活凭据，禁止提交。",
+  "cookies": {
+    "JSESSIONID": "<在此填入你的 JSESSIONID，或直接运行 LoginSession.py password>"
+  },
+  "saved_at": "<timestamp>"
+}
