@@ -1,7 +1,7 @@
 {
-  "_comment": "模板文件：登录后由 tools/Access/LoginSession.py 自动覆写。真实会话含活凭据，禁止提交。",
+  "_comment": "占位模板，仅供未登录时给出可读提示，不参与运行。真实会话默认写在仓库外的用户目录（%LOCALAPPDATA%\\AutoXMYZ\\ 或 ~/.local/share/AutoXMYZ/），由 tools/Access/LoginSession.py 管理。",
   "cookies": {
-    "JSESSIONID": "<在此填入你的 JSESSIONID，或直接运行 LoginSession.py password>"
+    "JSESSIONID": "<placeholder>"
   },
   "saved_at": "<timestamp>"
 }

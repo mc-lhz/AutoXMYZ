@@ -19,9 +19,28 @@ AES_KEY = "Tk8IVNJ8B75nHDgb"
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
 
-SESSION_FILE = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-    "reference", ".session.json")
+def _userDataDir() -> str:
+    """跨平台用户数据目录：仓库**之外**，与会话凭据隔离。"""
+    if os.name == "nt":
+        base = os.environ.get("LOCALAPPDATA") or os.path.expanduser(r"~\AppData\Local")
+    else:
+        base = os.environ.get("XDG_DATA_HOME") or os.path.expanduser("~/.local/share")
+    return os.path.join(base, "AutoXMYZ")
+
+
+_REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# ⚠️ 会话**默认写在仓库外**。
+#
+# 曾经默认写 `reference/.session.json`，于是每次登录都会把**活凭据**
+# 落进工作区；一旦仓库没配 .gitignore（本仓库刻意没有），
+# `git add -A` 就会把一条可直接冒用身份的 JSESSIONID 推上 GitHub。
+# 靠 .gitignore 挡是「记得配才行」的方案，靠路径隔离才是「不配也不会漏」。
+# 覆盖优先级：AUTOMXYZ_SESSION 环境变量 > 本默认值。
+SESSION_FILE = os.environ.get("AUTOMXYZ_SESSION") or os.path.join(_userDataDir(), "session.json")
+
+# 仓库里只保留**占位模板**，仅用于在未登录时给出可读提示。
+TEMPLATE_FILE = os.path.join(_REPO, "reference", ".session.json")
 
 # 守卫的数据源：tools/endpoint_kind.py 的分类器。
 #
@@ -33,7 +52,7 @@ SESSION_FILE = os.path.join(
 #      误拦 230/360 个只读端点；反过来 toDraft / signAll / setRead / resend
 #      这些写动作却在白名单里，红线反而破了。
 #   正确解：判定逻辑只有一份，放在 endpoint_kind.py，已用全量 683 端点校验
-#   （360 只读全放行 / 323 写端点全拦截）；_guard 只做转发，不再维护第二套名单。
+#   （359 只读全放行 / 324 写端点全拦截）；_guard 只做转发，不再维护第二套名单。
 from endpoint_kind import is_write
 
 
@@ -97,22 +116,29 @@ class Http(object):
 
     # ------------------------------------------------------------ 会话 ----
     @staticmethod
-    def loadCookie(path: str = SESSION_FILE) -> dict:
+    def loadCookie(path: str = None) -> dict:
+        path = path or SESSION_FILE
         if not os.path.exists(path):
+            # 回退到仓库模板只为**给出可读提示**，不是拿它当会话用。
+            if os.path.exists(TEMPLATE_FILE):
+                raise XmyzError(
+                    "未登录：用户会话 %s 不存在。\n"
+                    "       请先执行：python tools/Access/LoginSession.py password -u <学号> -p <密码>\n"
+                    "       （仓库里的 reference/.session.json 只是占位模板，不参与运行）"
+                    % path)
             raise XmyzError("未找到会话文件 %s，请先执行 LoginSession.py password" % path)
         with open(path, encoding="utf-8") as f:
             doc = json.load(f)
         ck = (doc or {}).get("cookies") or {}
         sid = ck.get("JSESSIONID", "")
-        # 仓库里放的是**占位模板**，未登录时是中文占位符。
+        # 占位模板里的中文占位符不能当 cookie 发。
         # 不校验的话，requests 会把它塞进 Cookie 头，抛一个
         # `UnicodeEncodeError: 'latin-1' codec can't encode ...` —— 与真实故障毫不相干。
         if not sid:
             raise XmyzError("会话文件缺少 JSESSIONID，请重新执行 LoginSession.py password")
         if not re.fullmatch(r"[0-9A-F]{16,}", sid):
             raise XmyzError(
-                "会话文件里的 JSESSIONID 不是有效值（%r）—— "
-                "reference/.session.json 可能是仓库自带的占位模板，"
+                "会话文件里的 JSESSIONID 不是有效值（%r），文件可能是占位模板。"
                 "请先执行：python tools/Access/LoginSession.py password -u <学号> -p <密码>"
                 % (sid[:24] + ("…" if len(sid) > 24 else "")))
         return ck

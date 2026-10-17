@@ -30,8 +30,13 @@ tools/
 
 **本技能纯只读。** 能力红线由 `Access/HttpTransport.py::_guard` 在**发请求前**强制执行：
 
-- `WRITE_DENY_PREFIX` 列 60 余个写语义动词前缀，命中即抛 `WriteDenied`
-- `READ_ALLOW` 豁免少数名字含动词但语义为读的端点（`attachment!send`、`!export`、`setRead`）
+- 判定逻辑**只有一份**，在 `tools/endpoint_kind.py::is_write`，已用全量 683 端点校验
+  （359 只读全放行 / 324 写端点全拦截）
+- `_guard` 只做**转发**，不得在传输层维护第二套名单 ——
+  曾经在 `_guard` 里另写白名单，结果误拦 230/360 个只读端点，
+  同时把 `toDraft`/`signAll`/`setRead`/`resend` 这些写动作放行了（见「已踩过的坑」第 3 条）
+- 同名两义按 namespace 分流（`attachment!send` 读 / `short-message-detail!send` 写），
+  例外清单也写在 `endpoint_kind.py`，不散落各处
 - `_call` 是唯一出口，**不得新增绕过 `_guard` 的调用路径**
 
 新增能力时：先判断是否只读。**只读才加。**
@@ -75,6 +80,23 @@ tools/
    （`dict!getTree`、`grade!loadTree`、`recipient!statInfo`、`community!loadTree`），
    只认 `{"success":...}` 会误报 5 个 FAIL。**解析出 JSON 即 ALIVE，空数组也算。**
 
+5. **`send` 同名两义，必须按 namespace 分流**。`system/attachment!send` 是**下载**（读）；
+   `message/short-message-detail!send` 是**真发短信**（写）。
+   只按动作名判会把只读端点拦死、或把写端点放行 —— 两边都是事故。
+
+6. **`.pyc` 会把编译期常量还原成明文**。`scan_sensitive.py` 把学号/密码/姓名
+   拆成字符元组 `_PARTS`，源码里确实没有连续明文；但 `py_compile` 之后，
+   字节码里那几个元组就是**重新拼好的明文串**。而扫描器当时只读文本、
+   且主动 `skip __pycache__` —— 泄漏从它眼皮底下走了过去。
+   现在的处理：扫描器同时扫二进制、不跳过 `__pycache__`，且
+   `precommit_check.py` 的闸①直接判 `__pycache__`/`*.pyc` 存在为**失败**。
+   **拆字符串不是防泄漏手段，别把它当保险。**
+
+7. **入库前检查器会污染它自己检查的东西**。`precommit_check.py` 的契约审计要
+   import 模块，若不设 `PYTHONDONTWRITEBYTECODE=1`，跑一次就长出 `__pycache__`，
+   下一次跑闸①必然失败 —— 检查器永远在报上一次运行留下的产物。
+   两道保险：子进程一律 `-B` + 环境变量；闸①排在**最后**做兜底扫。
+
 ## 常用命令
 
 ```bash
@@ -88,7 +110,18 @@ python tools/TestCases/TestContract.py                                       # �
 
 ## 发布前必跑
 
-`compileall` + `TestContract.py` + `TestApiReadOnly.py` + `reference/` 未超 150 KB。
+```bash
+python tools/Build/precommit_check.py    # 四道闸：产物 / 敏感串 / 会话模板 / 契约审计
+```
+
+外加 `reference/` 未超 150 KB。
+
+⚠️ **本仓库内不要用 `py_compile` / `compileall` 做语法校验** —— 它们会写出
+`__pycache__`，正是闸①要拦的东西（见「已踩过的坑」第 6 条）。用内存编译：
+
+```bash
+python -c "import sys; compile(open(sys.argv[1],encoding='utf-8').read(), sys.argv[1], 'exec')" <file>
+```
 
 ## 依赖
 
@@ -98,6 +131,8 @@ requests、rapidocr-onnxruntime（验证码 OCR）、numpy + Pillow（预处理�
 
 - 提交前脱敏：不得包含密码 / 会话 id / 姓名 / 学号 / 班级 / userId
 - 入库文档禁止出现任何真实姓名（含本人与他人），一律写「某学生」
-- `reference/.session.json` 含真实会话，**不入库**（已 gitignore）
+- `reference/.session.json` 是**占位模板**，没配 .gitignore 也不会漏 ——
+  真实会话默认写在仓库外的用户目录（`%LOCALAPPDATA%\AutoXMYZ\` / `~/.local/share/AutoXMYZ/`），
+  由 `HttpTransport.SESSION_FILE` 决定，可用 `AUTOMXYZ_SESSION` 或 `--out` 覆盖
 - 每加一条合规红线，必须配一条能证明它会红的**反向用例**
   （恒 PASS 的检查是装饰品）；反向用例不得真删文件，只 monkeypatch 或改临时副本，`finally` 还原

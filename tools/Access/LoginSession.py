@@ -142,7 +142,7 @@ def saveSession(cookies: dict, path: str = SESSION_FILE) -> str:
     return path
 
 
-def loginForSession(username, password, retry=6, captchaFile="jcaptcha.jpg"):
+def loginForSession(username, password, retry=6, captchaFile="jcaptcha.jpg", out=None):
     s = newSession()
     serverTime(s)
     for attempt in range(1, (retry or 6) + 1):
@@ -153,7 +153,7 @@ def loginForSession(username, password, retry=6, captchaFile="jcaptcha.jpg"):
             continue
         if portalLogin(s, username, password, code):
             sid = s.cookies.get("JSESSIONID")
-            p = saveSession(s.cookies.get_dict())
+            p = saveSession(s.cookies.get_dict(), out or SESSION_FILE)
             print("[login] 成功，JSESSIONID=%s…" % (sid or "")[:8])
             print("[save] 会话 → %s" % p)
             return s
@@ -164,7 +164,7 @@ def loginForSession(username, password, retry=6, captchaFile="jcaptcha.jpg"):
 def cmdPassword(a) -> int:
     try:
         s = loginForSession(a.username, a.password, retry=a.retry,
-                            captchaFile=a.captchaFile)
+                            captchaFile=a.captchaFile, out=getattr(a, "out", None))
     except XmyzError as e:
         print("[x] %s" % e, file=sys.stderr)
         return 3
@@ -188,10 +188,11 @@ def cmdJsessionid(a) -> int:
     except Exception:
         print("[x] 会话无效（已过期或复制不全），请重新登录", file=sys.stderr)
         return 4
-    if not j.get("loggedIn", True):
+    # 判据用 loginName，不用 loggedIn —— 登录后该字段直接消失（详见 HttpTransport._bindUser）。
+    if not j.get("loginName"):
         print("[x] 会话未认证", file=sys.stderr)
         return 4
-    p = saveSession(s.cookies.get_dict())
+    p = saveSession(s.cookies.get_dict(), getattr(a, "out", None) or SESSION_FILE)
     print("[ok] 会话可用 → %s" % p)
     print("[身份] loginName=%s" % j.get("loginName"))
     return 0
@@ -203,7 +204,7 @@ def cmdVision(a) -> int:
         s = newSession()
         if not portalLogin(s, a.username, a.password, a.code):
             return 2
-        p = saveSession(s.cookies.get_dict())
+        p = saveSession(s.cookies.get_dict(), getattr(a, "out", None) or SESSION_FILE)
         print("[ok] 登录成功 → %s" % p)
         return 0
     s = newSession()
@@ -239,7 +240,13 @@ def main():
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="method", required=True)
 
-    p = sub.add_parser("password", help="账号密码 + 验证码 OCR")
+    # 会话默认落在**仓库外**的用户目录（见 HttpTransport.SESSION_FILE），
+    # 所以 .gitignore 漏配也不会把活凭据带进提交。--out 可显式改到别处。
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--out", default=None,
+                        metavar="PATH", help="会话输出路径，默认 %s" % SESSION_FILE)
+
+    p = sub.add_parser("password", parents=[common], help="账号密码 + 验证码 OCR")
     p.add_argument("-u", "--username", required=True)
     p.add_argument("-p", "--password", required=True)
     p.add_argument("--retry", type=int, default=6)
@@ -247,11 +254,11 @@ def main():
     p.add_argument("--verbose", action="store_true")
     p.set_defaults(func=cmdPassword)
 
-    p = sub.add_parser("jsessionid", help="用浏览器会话 id，免验证码")
+    p = sub.add_parser("jsessionid", parents=[common], help="用浏览器会话 id，免验证码")
     p.add_argument("--jsessionid", required=True)
     p.set_defaults(func=cmdJsessionid)
 
-    p = sub.add_parser("vision", help="取验证码图 / 凭 --code 提交")
+    p = sub.add_parser("vision", parents=[common], help="取验证码图 / 凭 --code 提交")
     p.add_argument("-u", "--username", default="")
     p.add_argument("-p", "--password", default="")
     p.add_argument("--code", default="")

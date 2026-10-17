@@ -27,7 +27,7 @@ description: 厦门一中信息校园综合应用系统（xmyz.xmedu.cn）只读
 
 三者**共用同一 `JSESSIONID`**（`Path=/`，同源），一份会话通吃。
 
-合并去重后 **683** 个唯一端点（只读 360 / 写类 323）。
+合并去重后 **683** 个唯一端点（只读 359 / 写类 324）。
 **端点层几乎不重叠**（三方共有 0 个）——三个前端各写各的 Action 名；
 功能层互补，桌面端没有 `activiti/*` 审批流，移动端没有 `quality/*` 综评面板。
 
@@ -50,7 +50,11 @@ python tools/Access/LoginSession.py jsessionid --jsessionid <JSESSIONID>
 python tools/Access/LoginSession.py check
 ```
 
-会话落在 `reference/.session.json`。
+会话落在**仓库外**的用户目录（`%LOCALAPPDATA%\AutoXMYZ\session.json`，
+类 Unix 为 `~/.local/share/AutoXMYZ/`）。`--out <PATH>` 可改到别处。
+
+> 刻意**不写进仓库**：仓库里那份 `reference/.session.json` 只是占位模板。
+> 靠 `.gitignore` 挡是「记得配才行」，靠路径隔离才是「不配也不会漏」。
 
 **有读图能力却去用 OCR 是浪费；无读图能力却去用 vision 则会卡在 `--code`。**
 
@@ -62,7 +66,7 @@ python tools/Access/LoginSession.py check
 import sys; sys.path.insert(0, "tools")
 from XMYZClient import XMYZClient
 
-c = XMYZClient()                  # 自动读 reference/.session.json
+c = XMYZClient()                  # 自动读用户目录下的会话（仓库外）
 c = XMYZClient(token="<JSESSIONID>")
 
 c.status()                        # 本人账号与学籍摘要
@@ -112,6 +116,33 @@ python tools/TestCases/TestContract.py                     # 契约与红线审�
 
 ---
 
+## 端点清单怎么来的（`tools/Build/`）
+
+683 个端点不是静态扒出来的，是「登录 → 菜单树 → 定向抓模块」跑出来的。
+想复现或站点改版后重建，按序执行：
+
+```bash
+python tools/Build/login591.py                            # ① 登录（复用 591iq 的 OCR）
+python tools/Build/fetch_modules.py                       # ② 按菜单树抓 97 个 JS 模块
+python tools/Build/merge_endpoints.py                     # ③ 三方合并去重
+python tools/Build/probe_readonly.py                      # ④ 只读端点全量探测（约 13 分钟）
+python tools/Build/gen_api_md.py                          # ⑤ 重生成 reference/api.md
+python tools/Build/precommit_check.py                     # ⑥ 入库前检查：扫描 + 审计
+```
+
+关键点：桌面端的模块**由服务端菜单树下发**（`action.jsFile` 字段），
+所以菜单树一次请求同时给出「端点清单 + 待抓 JS 清单」，不需要扫全站。
+
+数据目录用环境变量指定，默认 `<仓库>/build_data`（**不入库**，含真实姓名与学号）：
+
+| 变量 | 默认 | 用途 |
+|---|---|---|
+| `AUTOMXYZ_WORK` | `<仓库>/build_data` | 中间产物（`js/`、`endpoints.json`、`validation.json`） |
+| `AUTOMXYZ_BUNDLE` | `AUTOMXYZ_WORK/bundles` | 存放 m.html / m2.html / manager.html 主 bundle |
+| `IQ_SKILL` | `~/.config/opencode/skills/591iqAutomatic` | `login591.py` 借用的模板 |
+
+---
+
 ## 注意事项
 
 - **写操作一律不做**。需要提交、审批、删除、改密码时，如实告知不在能力范围内，
@@ -122,3 +153,5 @@ python tools/TestCases/TestContract.py                     # 契约与红线审�
 - 探测未知端点时 `id` 一律用不存在的 `-1`，`limit=1`，**不要遍历真实 id**。
 - 入库文档里禁止出现真实姓名，一律写「某学生」。
 - `reference/` 体积上限 150 KB：原始 JSON（含姓名、学号、会话）留在本机临时目录，不入库。
+- **提交前必跑** `python tools/Build/precommit_check.py`：会话泄漏、`.pyc` 明文、
+  硬编码凭据一次全查（`.pyc` 曾实测把「字符元组拆开存」的凭据还原成明文）。
