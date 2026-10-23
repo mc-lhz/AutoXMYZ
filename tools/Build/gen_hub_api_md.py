@@ -3,6 +3,7 @@
 注册表是端点事实的唯一来源；本文档全部派生自它，不手写端点行。
 用法：python tools/Build/gen_hub_api_md.py
 """
+import json
 import os
 import sys
 
@@ -33,12 +34,40 @@ DOM_OF = {dom: (mixin, title) for dom, (mixin, title) in {
     "HubMessage": MIXIN_TITLE["HubMessage"]}.items()}
 
 
-def mixinTable(dom, rows):
+def _probeMap():
+    """reference/hub-probe.json（probe_hub_readonly.py 产物）→ {path: kind}。
+    只标注 GET 行；文件缺失时返回空表（文档无探测列，不报错）。"""
+    p = os.path.join(ROOT, "reference", "hub-probe.json")
+    if not os.path.exists(p):
+        return {}
+    with open(p, encoding="utf-8") as f:
+        doc = json.load(f)
+    return {k.split(" ", 1)[1]: v for k, v in doc.get("results", {}).items()
+            if k.startswith("GET ")}
+
+
+def mixinTable(dom, rows, probe=None):
     mixin, _ = DOM_OF[dom]
-    lines = ["| 方法 | 路径 | 类别 | 包装方法 |", "|---|---|---|---|"]
+    hasProbe = bool(probe)
+    head = "| 方法 | 路径 | 类别 | 包装方法 |" + (" 探测 |" if hasProbe else "")
+    lines = [head, "|---|---|---|---|" + ("---|" if hasProbe else "")]
     for r in sorted(rows, key=lambda x: (x[1], x[0])):
-        lines.append("| %s | `%s` | %s | `%s` |" % (r[0], r[1], r[2], r[4]))
+        line = "| %s | `%s` | %s | `%s` |" % (r[0], r[1], r[2], r[4])
+        if hasProbe:
+            pk = probe.get(r[1], "")
+            line += " %s |" % (PROBE_LABEL.get(pk, pk or "—"))
+        lines.append(line)
     return "\n".join(lines) + "\n"
+
+
+PROBE_LABEL = {
+    "public": "公开",
+    "auth": "需登录",
+    "exists": "存在·需参数",
+    "missing": "⚠️未挂载",
+    "throttled": "限流未探",
+    "net": "网络错误",
+}
 
 
 def main():
@@ -66,24 +95,33 @@ def main():
     for path, note in HE.WS_ROUTES:
         out.append("| `wss://api.xmyzstudent.com%s` | %s |" % (path, note))
 
+    probe = _probeMap()
+    if probe:
+        from collections import Counter
+        pc = Counter(probe.values())
+        out.insert(9, "- 免凭据探测（GET %d 个）：公开 %d / 需登录 %d / 存在·需参数 %d"
+                   " —— 详见 `reference/hub-probe.json`（probe_hub_readonly.py）"
+                   % (sum(pc.values()), pc.get("public", 0), pc.get("auth", 0),
+                      pc.get("exists", 0)))
+
     for dom in ["HubAccount", "HubPortal", "HubMessage", "HubTally", "HubCampaign",
                 "HubTicket", "HubMuseum", "HubRating", "HubVoices", "HubCampus",
                 "HubDebate"]:
         mixin, title = DOM_OF[dom]
         out += ["", "## %s —— %s" % (dom, title), "",
-                mixinTable(dom, byDom.get(dom, []))]
+                mixinTable(dom, byDom.get(dom, []), probe)]
 
     dst = os.path.join(ROOT, "reference", "hub-api.md")
     with open(dst, "w", encoding="utf-8") as f:
         f.write("\n".join(out))
     print("reference/hub-api.md: %d bytes" % os.path.getsize(dst))
 
-    # 各 Mixin 的同名 .md（契约：每 py 必须有同名 md）
+    # 各 Mixin 的同名 .md（契约：每 py 必须有同名 md；表格与 hub-api.md 同源同列）
     for dom, rowsDom in byDom.items():
         mixin, title = DOM_OF[dom]
         doc = ["# %s — %s" % (mixin, title), "",
                "包装 `%s` 域端点；方法签名按镜像接口层还原，命名保持站点语义导出名。" % dom,
-               "", mixinTable(dom, rowsDom)]
+               "", mixinTable(dom, rowsDom, probe)]
         p = os.path.join(ROOT, "tools", "StudentHub", mixin + ".md")
         with open(p, "w", encoding="utf-8") as f:
             f.write("\n".join(doc))
