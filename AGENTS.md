@@ -1,34 +1,56 @@
 # AGENTS.md
 
-厦门一中信息校园综合应用系统（xmyz.xmedu.cn）**只读**工具集。纯 HTTP，读操作不需要浏览器。
+**双源站**工具集：厦门一中校内系统（xmyz.xmedu.cn，只读）+ 学生社区
+（xmyzstudent.com，功能完备）。纯 HTTP，无需浏览器。
 
 ## 架构
 
-`tools/` 按业务域分目录，每个目录 = 一个业务域，门面 `XMYZClient.py` 留在 `tools/` 根：
+多源站聚合：**每源站 = 一个门面 + 一套传输/会话 + 若干业务域目录**。
+未来站点（心意我 / hfs / 校园网）按同模式加目录 + 门面注册。
 
 ```
 tools/
-  XMYZClient.py                  门面：组合各域 mixin，对外 API 就是 XMYZClient
-  endpoint_kind.py               端点读写分类的唯一权威判定（建库与审计共用）
-  Access/HttpTransport.py        传输层：_call / get / post / paged / login / _bindUser
-  Access/LoginSession.py         登录四种方式：password / jsessionid / vision / check
+  XMYZClient.py                  门面①：xmyz.xmedu.cn，纯只读（_guard 强制）
+  endpoint_kind.py               xmyz 端点读写分类的唯一权威判定
+  Access/HttpTransport.py        xmyz 传输层：_call / get / post / paged / login / _bindUser
+  Access/LoginSession.py         xmyz 登录四种方式：password / jsessionid / vision / check
   StudentBase/ProfileDict.py     身份、字典、学期、班级、网络磁盘
   LifeOffice/StudyMessage.py     成绩、成绩单、成长记录、作业、短信、通知、附件
   QualityCenter/QualityRead.py   综合素质评价（quality 域，20 个读取方法）
   CommunityCenter/VolunteerRead.py  社团（community）与志愿服务（volunteer）
-  TestCases/TestApiReadOnly.py   只读 35 项探测，可重复运行
+  StudentHubClient.py            门面②：学社 xmyzstudent.com，功能完备（含写）
+  StudentHub/
+    HubTransport.py              学社传输层：Bearer、信封解包、限速、upload、WS 快照
+    HubSession.py                学社登录四种方式：campus(+vision 验证码) / normal / sms / token
+    HubEndpoints.py              学社端点注册表（260 REST + 2 WS，事实唯一来源）
+    AccountMixin.py              auth / user / sms / permissions
+    PortalMixin.py               横幅 / 年级绑定 / 文件上传 / 音乐 / QQ音乐
+    MessageMixin.py              站内消息（收件箱 + 管理端群发/模板）
+    TallyMixin.py                实时唱票（含 WS 快照订阅）
+    CampaignMixin.py             投票征集活动（投稿 / 投票 / 后台审核）
+    TicketMixin.py               电子票务（活动 / 抢票 / 核销 / 审核）
+    MuseumMixin.py               校园博物馆（事件 / 区块 / 标签 / 瞬间审核）
+    RatingMixin.py               评分社区（浏览 / 投稿 / 评分 / 评论 / 后台 74 端点）
+    VoicesMixin.py               声音问答（提问 / 回答 / 举报 / 后台治理）
+    CampusMixin.py               校区 / 楼宇 / 时段 + 管理端用户检索
+    DebateMixin.py               辩论场管理（含 WS）
+  TestCases/TestApiReadOnly.py   xmyz 只读 35 项探测，可重复运行
   TestCases/TestContract.py      仓库契约与能力红线审计（离线，无网络无凭据）
+  TestCases/TestHub.py           学社契约审计（离线：注册表/门面/传输 mock/文档一致）
   Common/Logcat.py               彩色分等级日志（内部诊断；单例 `Log`）
 ```
 
-- `reference/api.md` — 端点清单、来源前端、只读探测结果（本仓库唯一的参考文档）
+- `reference/api.md` — xmyz 端点清单（本仓库 xmyz 侧唯一参考文档）
+- `reference/hub-api.md` — 学社端点清单（由 `Build/gen_hub_api_md.py` 从注册表派生）
 - `SKILL.md` — skill 定义
 - 每个 `.py` 都有同名 `.md`（门面 `XMYZClient.py` 豁免）
 - 每个业务目录有 `__init__.py`
 
 ## 红线
 
-**本技能纯只读。** 能力红线由 `Access/HttpTransport.py::_guard` 在**发请求前**强制执行：
+**两套能力模型，不要混：**
+
+1. **xmyz（校内系统）纯只读。** 能力红线由 `Access/HttpTransport.py::_guard` 在**发请求前**强制执行：
 
 - 判定逻辑**只有一份**，在 `tools/endpoint_kind.py::is_write`，已用全量 683 端点校验
   （359 只读全放行 / 324 写端点全拦截）
@@ -39,7 +61,13 @@ tools/
   例外清单也写在 `endpoint_kind.py`，不散落各处
 - `_call` 是唯一出口，**不得新增绕过 `_guard` 的调用路径**
 
-新增能力时：先判断是否只读。**只读才加。**
+2. **学社功能完备（含写）。** xmyzstudent.com 是学生自建平台，写操作是需求本身：
+- **不设 _guard**；`HubEndpoints.is_write(path, method)` 只是文档标注（语义与 xmyz 相反）
+- 删除类方法名显式含 delete；批量删除调用前自查 id 列表
+- 端点事实只有一份：`HubEndpoints.py`；`reference/hub-api.md` 与各 Mixin `.md`
+  全部由 `Build/gen_hub_api_md.py` 派生，**改注册表不改文档 = TestHub 报漂移**
+
+新增能力时：先判断属于哪个源站。xmyz 只加只读；学社读写都可加但必须先进注册表。
 
 ## 开发契约
 
@@ -100,21 +128,32 @@ tools/
 ## 常用命令
 
 ```bash
+# xmyz 校内系统（只读）
 python tools/Access/LoginSession.py check                                   # 无凭据探测
 python tools/Access/LoginSession.py vision -u <学号> -p <密码> --code ab12  # 登录（有读图能力）
 python tools/Access/LoginSession.py password -u <学号> -p <密码>            # 登录（OCR）
 python tools/XMYZClient.py --health                                          # 会话自检
 python tools/TestCases/TestApiReadOnly.py                                    # 只读 35 项
-python tools/TestCases/TestContract.py                                       # 契约审计（离线）
+
+# 学社（功能完备）
+python tools/StudentHub/HubSession.py captcha                                # 取验证码图
+python tools/StudentHub/HubSession.py campus -a <账号> -p <密码> --code ab12 # 校园网账号登录
+python tools/StudentHub/HubSession.py token --token <localStorage.token>     # 浏览器复制 token
+python tools/StudentHubClient.py --health                                    # 会话自检
+
+# 审计（全离线）
+python tools/TestCases/TestContract.py                                       # 仓库契约
+python tools/TestCases/TestHub.py                                            # 学社契约
 ```
 
 ## 发布前必跑
 
 ```bash
+python tools/TestCases/TestHub.py        # 学社契约（含文档一致性）
 python tools/Build/precommit_check.py    # 四道闸：产物 / 敏感串 / 会话模板 / 契约审计
 ```
 
-外加 `reference/` 未超 150 KB。
+外加 `reference/` 未超 150 KB（api.md + hub-api.md 合计）。
 
 ⚠️ **本仓库内不要用 `py_compile` / `compileall` 做语法校验** —— 它们会写出
 `__pycache__`，正是闸①要拦的东西（见「已踩过的坑」第 6 条）。用内存编译：
@@ -134,5 +173,8 @@ requests、rapidocr-onnxruntime（验证码 OCR）、numpy + Pillow（预处理�
 - `reference/.session.json` 是**占位模板**，没配 .gitignore 也不会漏 ——
   真实会话默认写在仓库外的用户目录（`%LOCALAPPDATA%\AutoXMYZ\` / `~/.local/share/AutoXMYZ/`），
   由 `HttpTransport.SESSION_FILE` 决定，可用 `AUTOMXYZ_SESSION` 或 `--out` 覆盖
+- 学社侧同理：`hub_session.json` / `hub_captcha_pending.json` 都在仓库外同目录，
+  由 `HubTransport.SESSION_FILE` / `CAPTCHA_PENDING_FILE` 决定，`AUTOMXYZ_HUB_SESSION` 可覆盖
+- 学社文档/示例不得出现真实 token（32+ hex 由 TestHub 安全闸拦截）、手机号
 - 每加一条合规红线，必须配一条能证明它会红的**反向用例**
   （恒 PASS 的检查是装饰品）；反向用例不得真删文件，只 monkeypatch 或改临时副本，`finally` 还原

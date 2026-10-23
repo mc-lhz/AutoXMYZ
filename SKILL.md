@@ -1,19 +1,29 @@
 ---
 name: AutoXMYZ
-description: 厦门一中信息校园综合应用系统（xmyz.xmedu.cn）只读查询工具集。Use when the user mentions xmyz、厦一中、一中校园、综合素质评价、成绩单、成绩查询、成长记录、志愿者、社团、电子成绩单、待办审批、校园短信、菜单树，或要查询本人的综评记录、成绩、成长记录、社团与志愿活动、短信通知、通知公告。
+description: 厦门一中校内系统（xmyz.xmedu.cn，只读）与学生社区（xmyzstudent.com，功能完备）聚合工具集。Use when the user mentions xmyz、厦一中、一中校园、综合素质评价、成绩单、成绩查询、成长记录、志愿者、社团、电子成绩单、待办审批、校园短信、菜单树，或学社、xmyzstudent、学生社区、唱票、实时唱票、抢票、票务、评分社区、声音问答、校园博物馆、辩论场、投票活动，或要查询本人的综评记录、成绩、成长记录、社团与志愿活动、短信通知，或要管理唱票活动、审核投稿、群发消息、管理博物馆与票务。
 ---
 
-# 厦门一中信息校园综合应用系统（xmyz.xmedu.cn）使用指南
+# 厦门一中双源站工具集：校内系统（只读）+ 学生社区（功能完备）
 
-> **使用范围与红线**：本技能**纯只读**。仅用于快捷查询本人数据，
-> 不得用于*攻击、压力测试、窥探隐私*；不得用于发布*涉黄、涉暴、危害国家安全、颠覆国家统一的内容*；
-> 发现越权或泄露类问题时*只上报、不封装*。
-> 任何**写操作**（提交、审批、删除、上传、改密码）**一律不在能力范围内**，
-> 由 `Access/HttpTransport.py::_guard` 强制拦截。
-> 含未成年人个人信息——*账号信息、凭据、导出文件不入库、不外传*。
+> **能力红线分工**：
+> - **xmyz.xmedu.cn（校内系统）——纯只读**。仅用于快捷查询本人数据，
+>   不得用于*攻击、压力测试、窥探隐私*；不得用于发布*涉黄、涉暴、危害国家安全、颠覆国家统一的内容*；
+>   发现越权或泄露类问题时*只上报、不封装*。
+>   任何**写操作**（提交、审批、删除、上传、改密码）**一律不在能力范围内**，
+>   由 `Access/HttpTransport.py::_guard` 强制拦截。
+> - **xmyzstudent.com（学生社区，下称「学社」）——功能完备**。站点是学生自建平台，
+>   唱票、审核、发布等写操作是需求本身；删除类方法名显式含 delete，批量操作先自查 id。
+> 共同纪律：含未成年人个人信息——*账号信息、凭据、导出文件不入库、不外传*；
+> 会话文件一律写仓库外用户目录。
 
-目标站：`https://xmyz.xmedu.cn`（Struts2 后端，`模块!方法.action`）
-纯 HTTP 完成全部读操作，无需浏览器。
+两个源站：
+
+| 门面 | 源站 | 鉴权 | 能力 |
+|---|---|---|---|
+| `XMYZClient` | `https://xmyz.xmedu.cn`（Struts2，`模块!方法.action`） | JSESSIONID | 纯只读，359 只读端点 |
+| `StudentHubClient` | `https://api.xmyzstudent.com/api/v2`（JSON API） | Bearer token | 260 REST + 2 WS，读写齐备 |
+
+纯 HTTP 完成全部操作，无需浏览器。
 
 ---
 
@@ -143,10 +153,67 @@ python tools/Build/precommit_check.py                     # ⑥ 入库前检查�
 
 ---
 
+## 学社（xmyzstudent.com）——功能完备侧
+
+学生自建社区平台：实时唱票、投票征集、电子票务、评分社区、声音问答、校园博物馆、
+辩论场、站内消息、宿舍楼宇。前端 `xmyzstudent.com`，API `api.xmyzstudent.com/api/v2`。
+
+### 登录（Bearer token，四种方式）
+
+```bash
+# ① campus（推荐）：校园网账号 + 验证码，两步走，验证码图给读图模型看
+python tools/StudentHub/HubSession.py captcha                       # 取图并暂存 jsessionId
+python tools/StudentHub/HubSession.py campus -a <校园网账号> -p <密码> --code ab12
+# ② OCR 兜底（需 rapidocr-onnxruntime）
+python tools/StudentHub/HubSession.py campus -a <账号> -p <密码> --ocr 6
+# ③ 站内账密 / ④ 浏览器复制 token（F12 → localStorage → token）
+python tools/StudentHub/HubSession.py normal -u <用户名> -p <密码>
+python tools/StudentHub/HubSession.py token --token <token>
+python tools/StudentHub/HubSession.py check                          # 自检
+```
+
+### 使用
+
+```python
+import sys; sys.path.insert(0, "tools")
+from StudentHubClient import StudentHubClient
+c = StudentHubClient()                    # 自动读 %LOCALAPPDATA%\AutoXMYZ\hub_session.json
+c.healthCheck()                           # /user/profile 有 username 即有效
+
+# 唱票：看活动 → 录票 → 流水 → 撤销；大屏快照走 WS
+c.getAdminTallyActivities()
+c.voteAdminTallyCandidates(candidateId, 10)
+c.getAdminTallyActivitiesRecords(activityId)
+c.undoAdminTallyActivities(activityId)
+c.wsSnapshots("/ws/tally/activity/%d" % activityId, print, seconds=10)
+
+# 其它高频
+c.getMessages(); c.getUnreadMessageCount()          # 站内消息
+c.searchRatingItems("食堂")                          # 评分社区
+c.getVoiceQuestions(); c.createVoicesQuestionsAnswers(questionId, "内容")   # 声音问答
+c.getPublicTicketActivities(); c.getTicketsMy()      # 抢票
+c.getAdminMuseumEvents(); c.publishAdminMuseumEvents(id)        # 博物馆
+```
+
+260 个端点方法清单见 `reference/hub-api.md`（事实来源
+`tools/StudentHub/HubEndpoints.py`，由 `Build/gen_hub_api_md.py` 派生）。
+未包装端点直接 `c.get/post/put/delete(path, json=...)`。
+
+### 契约要点
+
+- 信封 `{code, message, data}`，**业务失败也是 HTTP 200**，`code!=200` 由传输层抛
+  `HubError`（401 → `HubAuthError`，重新登录，不要换参数重试）
+- 分页 `page` + `size`（部分端点 `pageSize`）
+- **学社无写拦截**（与 xmyz 相反）：删除类方法名显式含 delete，
+  `HubEndpoints.is_write(path, method)` 只做文档标注
+- 站点为学生自建平台，写操作先确认身份与影响面；**不要碰他人隐私数据**
+
+---
+
 ## 注意事项
 
-- **写操作一律不做**。需要提交、审批、删除、改密码时，如实告知不在能力范围内，
-  不要尝试绕过 `_guard`。
+- **校内系统写操作一律不做**。需要提交、审批、删除、改密码时，如实告知不在能力范围内，
+  不要尝试绕过 `_guard`。学社侧写操作按上文红线纪律执行。
 - `account/user!resetPassword.action`（重置他人密码）是教师常规功能，但**本技能不封装**。
 - 会话会过期，报「会话无效」就重新登录，不要试图换参数绕过。
 - 单账号、串行、限速 ≥180ms，遇 4xx/429 立即停手。
