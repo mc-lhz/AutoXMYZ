@@ -19,6 +19,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from StudentHub.HubTransport import HubHttp, HubError, HubAuthError  # noqa: F401,E402
 from StudentHub.AccountMixin import AccountMixin  # noqa: E402
+from StudentHub.AdmissionMixin import AdmissionMixin  # noqa: E402
 from StudentHub.PortalMixin import PortalMixin  # noqa: E402
 from StudentHub.MessageMixin import MessageMixin  # noqa: E402
 from StudentHub.TallyMixin import TallyMixin  # noqa: E402
@@ -31,14 +32,15 @@ from StudentHub.CampusMixin import CampusMixin  # noqa: E402
 from StudentHub.DebateMixin import DebateMixin  # noqa: E402
 
 
-class StudentHubClient(AccountMixin, PortalMixin, MessageMixin,
+class StudentHubClient(AccountMixin, AdmissionMixin, PortalMixin, MessageMixin,
                        TallyMixin, CampaignMixin, TicketMixin,
                        MuseumMixin, RatingMixin, VoicesMixin,
                        CampusMixin, DebateMixin, HubHttp):
     """厦门一中学生社区（xmyzstudent.com）客户端 —— 功能完备。
 
-    端点事实来源：`StudentHub/HubEndpoints.py`（260 REST + 2 WS）。
-    任意未包装端点可直接 `c.call`（见 HubHttp._request / get/post/...）。
+    端点事实来源：`StudentHub/HubEndpoints.py`（284 REST + 2 WS，2026-10 对线上
+    新版前端 index-D2vbWxba.js 重新对账）。
+    任意未包装端点可直接 `c.get/post/...`（见 HubHttp）。
     """
 
     def healthCheck(self):

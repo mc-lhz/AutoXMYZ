@@ -67,7 +67,9 @@ def _persistLogin(d: dict) -> dict:
                          "campusInfo": d.get("campusInfo")})
     c = HubHttp()
     try:
-        prof = c.getMyProfile()
+        # ⚠️ 用原始端点而非 mixin 方法：本模块只继承 HubHttp（无业务 mixin），
+        # getMyProfile 在 AccountMixin 上，裸 HubHttp 调它会 AttributeError。
+        prof = c.get("/user/profile")
     except HubError as e:
         raise HubError(-1, "登录后自检失败（token 未生效？）: %s" % e)
     Log.d("HubSession", "登录成功 user=%s" % (prof or {}).get("username"))
@@ -121,7 +123,7 @@ def loginToken(token: str) -> dict:
     c = HubHttp()
     c.setToken(token)
     try:
-        prof = c.getMyProfile()
+        prof = c.get("/user/profile")
     except HubError as e:
         raise HubError(-1, "token 无效或已过期: %s" % e)
     HubHttp.saveSession({"token": token, "user": prof})
@@ -192,7 +194,7 @@ def main():
             print(json.dumps(loginToken(a.token), ensure_ascii=False))
         elif a.cmd == "check":
             c = HubHttp()
-            prof = c.getMyProfile()
+            prof = c.get("/user/profile")
             print(json.dumps({"ok": True, "username": (prof or {}).get("username"),
                               "token": (c.token or "")[:8] + "…"}, ensure_ascii=False))
     except HubError as e:

@@ -22,7 +22,7 @@ tools/
   StudentHub/
     HubTransport.py              学社传输层：Bearer、信封解包、限速、upload、WS 快照
     HubSession.py                学社登录四种方式：campus(+vision 验证码) / normal / sms / token
-    HubEndpoints.py              学社端点注册表（260 REST + 2 WS，事实唯一来源）
+    HubEndpoints.py              学社端点注册表（284 REST + 2 WS，事实唯一来源）
     AccountMixin.py              auth / user / sms / permissions
     PortalMixin.py               横幅 / 年级绑定 / 文件上传 / 音乐 / QQ音乐
     MessageMixin.py              站内消息（收件箱 + 管理端群发/模板）
@@ -32,6 +32,7 @@ tools/
     MuseumMixin.py               校园博物馆（事件 / 区块 / 标签 / 瞬间审核）
     RatingMixin.py               评分社区（浏览 / 投稿 / 评分 / 评论 / 后台 74 端点）
     VoicesMixin.py               声音问答（提问 / 回答 / 举报 / 后台治理）
+    AdmissionMixin.py            纳新/准入（分组/成员/豁免/扫码 + 用户验证，2026-10 新增）
     CampusMixin.py               校区 / 楼宇 / 时段 + 管理端用户检索
     DebateMixin.py               辩论场管理（含 WS）
   TestCases/TestApiReadOnly.py   xmyz 只读 35 项探测，可重复运行

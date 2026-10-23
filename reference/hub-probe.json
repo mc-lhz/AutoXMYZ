@@ -1,10 +1,10 @@
 {
- "probedAt": "2026-10-24 01:23:53",
+ "probedAt": "2026-10-24 01:43:25",
  "note": "免凭据 GET 探测（path 参数填 -1）；public=未登录可用，auth=端点存在需登录，exists=端点存在但参数/方法不符，missing=未挂载，net=网络错误",
  "stats": {
-  "auth": 80,
-  "public": 11,
-  "exists": 12
+  "auth": 83,
+  "public": 14,
+  "exists": 17
  },
  "results": {
   "GET /admin/banners": "auth",
@@ -109,6 +109,17 @@
   "GET /voices/status": "public",
   "GET /voting/campaigns/{}/config": "auth",
   "GET /voting/campaigns/{}/my-votes": "auth",
-  "GET /voting/campaigns/{}/options": "auth"
+  "GET /voting/campaigns/{}/options": "auth",
+  "GET /admission/status": "public",
+  "GET /admission/qq-profile": "exists",
+  "GET /admission/token/{}": "exists",
+  "GET /admin/admission/groups": "auth",
+  "GET /admin/admission/members": "auth",
+  "GET /admin/admission/scan": "auth",
+  "GET /debate/active": "public",
+  "GET /debate/round/{}": "exists",
+  "GET /debate/me": "public",
+  "GET /debate/results/{}": "exists",
+  "GET /debate/wechat/login": "exists"
  }
 }

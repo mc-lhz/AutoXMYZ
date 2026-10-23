@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 from StudentHub import HubEndpoints as HE  # noqa: E402
 
 MIXIN_TITLE = {
+    "HubAdmission": ("AdmissionMixin", "纳新/准入（分组/成员/豁免/扫码 + 用户验证）"),
     "HubTally": ("TallyMixin", "实时唱票"),
     "HubCampaign": ("CampaignMixin", "投票征集活动"),
     "HubDebate": ("DebateMixin", "辩论场管理"),
@@ -26,7 +27,7 @@ MIXIN_TITLE = {
     "HubMessage": ("MessageMixin", "站内消息（收件箱 + 管理端群发/模板）"),
 }
 DOM_OF = {dom: (mixin, title) for dom, (mixin, title) in {
-    "HubTally": MIXIN_TITLE["HubTally"], "HubCampaign": MIXIN_TITLE["HubCampaign"],
+    "HubAdmission": MIXIN_TITLE["HubAdmission"], "HubTally": MIXIN_TITLE["HubTally"], "HubCampaign": MIXIN_TITLE["HubCampaign"],
     "HubDebate": MIXIN_TITLE["HubDebate"], "HubCampus": MIXIN_TITLE["HubCampus"],
     "HubMuseum": MIXIN_TITLE["HubMuseum"], "HubRating": MIXIN_TITLE["HubRating"],
     "HubTicket": MIXIN_TITLE["HubTicket"], "HubVoices": MIXIN_TITLE["HubVoices"],
@@ -104,7 +105,7 @@ def main():
                    % (sum(pc.values()), pc.get("public", 0), pc.get("auth", 0),
                       pc.get("exists", 0)))
 
-    for dom in ["HubAccount", "HubPortal", "HubMessage", "HubTally", "HubCampaign",
+    for dom in ["HubAccount", "HubAdmission", "HubPortal", "HubMessage", "HubTally", "HubCampaign",
                 "HubTicket", "HubMuseum", "HubRating", "HubVoices", "HubCampus",
                 "HubDebate"]:
         mixin, title = DOM_OF[dom]

@@ -8,7 +8,7 @@
 | 门面 | 源站 | 鉴权 | 能力 |
 |---|---|---|---|
 | `XMYZClient` | `xmyz.xmedu.cn`（Struts2） | JSESSIONID | 纯只读 359 端点，`_guard` 强制拦截写 |
-| `StudentHubClient` | `api.xmyzstudent.com/api/v2` | Bearer token | 260 REST + 2 WS，读写齐备 |
+| `StudentHubClient` | `api.xmyzstudent.com/api/v2` | Bearer token | 284 REST + 2 WS，读写齐备 |
 
 ## xmyz 三个前端入口
 
@@ -32,11 +32,15 @@
 `elective`(96 选课)、`quality`(30 综评)、`volunteer`(19)；
 m2 独占 `activiti/*`(72 审批流)、`archive/*`(23)——分工是设计好的。
 
-## 学社功能域（260 端点）
+## 学社功能域（284 端点）
 
 账号/绑定/短信、门户横幅、年级考试绑定、文件上传、音乐与 QQ 音乐、站内消息、
 **实时唱票**（REST + WS 快照）、投票征集、电子票务（抢票/核销/审核）、校园博物馆、
-评分社区（74 端点，含投稿/评论/后台）、声音问答、校区楼宇时段、辩论场（WS）。
+评分社区（74 端点，含投稿/评论/后台）、声音问答、校区楼宇时段、辩论场（WS）、
+**纳新/准入**（2026-10 新增域：分组/成员/豁免/扫码 + 用户验证）。
+
+2026-10-24 已对线上新版前端（index-D2vbWxba.js）重新对账：114 个 GET 全量免凭据
+探测（公开 14 / 需登录 83 / 存在·需参数 17 / 缺失 0），鉴权态抽样返回真实数据。
 
 ## 用法
 

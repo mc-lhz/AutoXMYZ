@@ -1,4 +1,4 @@
-"""学社端点注册表 —— 端点事实的唯一来源（260 REST + 2 WS）。
+"""学社端点注册表 —— 端点事实的唯一来源（283 REST + 2 WS）。
 
 - 每行 (method, path, kind, domain, wrapper)，路径 {} 为路径参数
 - kind: read=GET / write=其余（学社端**不设 _guard**：自有平台、功能完备，
@@ -266,7 +266,31 @@ REST_ENDPOINTS = [
     ("GET", "/voting/campaigns/{}/config", "read", "HubCampaign", "getVotingCampaignsConfig"),
     ("GET", "/voting/campaigns/{}/my-votes", "read", "HubCampaign", "getVotingCampaignsMyVotes"),
     ("GET", "/voting/campaigns/{}/options", "read", "HubCampaign", "getVotingOptions"),
-    ("POST", "/voting/vote", "write", "HubCampaign", "voteVoting"),]
+    ("POST", "/voting/vote", "write", "HubCampaign", "voteVoting"),    ("GET", "/admission/status", "read", "HubAdmission", "getAdmissionStatus"),
+    ("GET", "/admission/qq-profile", "read", "HubAdmission", "getAdmissionQQProfile"),
+    ("GET", "/admission/token/{}", "read", "HubAdmission", "getAdmissionTokenByQQ"),
+    ("POST", "/admission/verify", "write", "HubAdmission", "verifyAdmission"),
+    ("POST", "/admission/confirm", "write", "HubAdmission", "confirmAdmission"),
+    ("GET", "/admin/admission/groups", "read", "HubAdmission", "getAdminAdmissionGroups"),
+    ("GET", "/admin/admission/members", "read", "HubAdmission", "getAdminAdmissionMembers"),
+    ("POST", "/admin/admission/exempt", "write", "HubAdmission", "exemptAdminAdmission"),
+    ("POST", "/admin/admission/revoke-exempt", "write", "HubAdmission", "revokeExemptAdminAdmission"),
+    ("POST", "/admin/admission/kick", "write", "HubAdmission", "kickAdminAdmission"),
+    ("POST", "/admin/admission/resend", "write", "HubAdmission", "resendAdminAdmission"),
+    ("GET", "/admin/admission/scan", "read", "HubAdmission", "scanAdminAdmission"),
+    ("POST", "/admin/admission/scan-fix", "write", "HubAdmission", "fixAdminAdmissionScan"),
+    ("GET", "/debate/active", "read", "HubDebate", "getActiveDebateRounds"),
+    ("GET", "/debate/round/{}", "read", "HubDebate", "getDebateRoundById"),
+    ("GET", "/debate/me", "read", "HubDebate", "getMyDebateIdentity"),
+    ("POST", "/debate/vote", "write", "HubDebate", "submitDebateVote"),
+    ("GET", "/debate/results/{}", "read", "HubDebate", "getDebateResultsById"),
+    ("GET", "/debate/wechat/login", "read", "HubDebate", "debateWechatLoginUrl"),
+    ("POST", "/debate/operator/verify", "write", "HubDebate", "verifyDebateOperator"),
+    ("PUT", "/debate/operator/rounds/{}", "write", "HubDebate", "updateDebateOperatorRound"),
+    ("PUT", "/debate/operator/rounds/{}/reset", "write", "HubDebate", "resetDebateOperatorRound"),
+    ("PUT", "/debate/operator/rounds/{}/active", "write", "HubDebate", "activateDebateOperatorRound"),
+    ("PUT", "/debate/operator/rounds/{}/lock", "write", "HubDebate", "lockDebateOperatorRound"),
+]
 
 WS_ROUTES = [
     ("/ws/tally/activity/{id}", "唱票大屏快照（全量推送，单向）"),

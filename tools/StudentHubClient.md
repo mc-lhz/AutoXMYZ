@@ -28,9 +28,9 @@ c.post(c.BASE + "/任意未包装端点", json={...})        # 未包装端点�
 
 ## 组合结构
 
-11 个业务 mixin（Account/Portal/Message/Tally/Campaign/Ticket/Museum/Rating/
-Voices/Campus/Debate）+ `HubHttp`（末位基类）。方法名 = 站点前端接口层语义导出名，
-共 260 个（见 `StudentHub/HubEndpoints.py` 与 `reference/hub-api.md`）。
+12 个业务 mixin（Account/Admission/Portal/Message/Tally/Campaign/Ticket/Museum/
+Rating/Voices/Campus/Debate）+ `HubHttp`（末位基类）。方法名 = 站点前端接口层语义导出名，
+共 284 个（见 `StudentHub/HubEndpoints.py` 与 `reference/hub-api.md`）。
 
 ## 红线与纪律
 

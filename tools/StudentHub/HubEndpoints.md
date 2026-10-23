@@ -15,10 +15,12 @@
 
 ## 统计
 
-260 REST（read 103 / write 157）+ 2 WS，跨 11 个域：
+284 REST（read 114 / write 170）+ 2 WS，跨 12 个域（2026-10-24 对线上新版前端
+index-D2vbWxba.js 重新对账：+24 admission/debate 操作员域，0 移除）：
 
-HubAccount(29) HubPortal(17) HubMessage(15) HubTally(11) HubCampaign(19)
-HubTicket(20) HubMuseum(26) HubRating(74) HubVoices(21) HubCampus(19) HubDebate(9)
+HubAccount(29) HubAdmission(13) HubPortal(17) HubMessage(15) HubTally(11)
+HubCampaign(19) HubTicket(20) HubMuseum(26) HubRating(74) HubVoices(21)
+HubCampus(19) HubDebate(20)
 
 ## 清单来源
 

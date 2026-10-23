@@ -21,7 +21,7 @@ description: 厦门一中校内系统（xmyz.xmedu.cn，只读）与学生社区
 | 门面 | 源站 | 鉴权 | 能力 |
 |---|---|---|---|
 | `XMYZClient` | `https://xmyz.xmedu.cn`（Struts2，`模块!方法.action`） | JSESSIONID | 纯只读，359 只读端点 |
-| `StudentHubClient` | `https://api.xmyzstudent.com/api/v2`（JSON API） | Bearer token | 260 REST + 2 WS，读写齐备 |
+| `StudentHubClient` | `https://api.xmyzstudent.com/api/v2`（JSON API） | Bearer token | 284 REST + 2 WS，读写齐备 |
 
 纯 HTTP 完成全部操作，无需浏览器。
 
@@ -195,7 +195,7 @@ c.getPublicTicketActivities(); c.getTicketsMy()      # 抢票
 c.getAdminMuseumEvents(); c.publishAdminMuseumEvents(id)        # 博物馆
 ```
 
-260 个端点方法清单见 `reference/hub-api.md`（事实来源
+284 个端点方法清单见 `reference/hub-api.md`（事实来源
 `tools/StudentHub/HubEndpoints.py`，由 `Build/gen_hub_api_md.py` 派生）。
 未包装端点直接 `c.get/post/put/delete(path, json=...)`。
 

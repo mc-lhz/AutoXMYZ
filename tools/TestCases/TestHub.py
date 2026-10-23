@@ -76,7 +76,8 @@ def facade_composition():
     need = ["getMyProfile", "getAdminTallyActivities", "voteAdminTallyCandidates",
             "uploadFile", "getUnreadMessageCount", "getVoiceQuestions",
             "searchRatingItems", "getCampuses", "getAdminDebateRounds",
-            "getMessages", "getPublicTicketActivities"]
+            "getMessages", "getPublicTicketActivities", "getAdmissionStatus",
+            "exemptAdminAdmission", "verifyDebateOperator"]
     miss = [m for m in need if not hasattr(StudentHubClient, m)]
     return (not miss), ("11 域方法齐备" if not miss else "缺 %s" % miss)
 
@@ -198,7 +199,7 @@ def hub_docs_in_sync():
 def mixin_md_present():
     from StudentHub import HubEndpoints as HE
     doms = {d for _, _, _, d, _ in HE.REST_ENDPOINTS}
-    names = {"HubTally": "TallyMixin", "HubCampaign": "CampaignMixin",
+    names = {"HubAdmission": "AdmissionMixin", "HubTally": "TallyMixin", "HubCampaign": "CampaignMixin",
              "HubDebate": "DebateMixin", "HubCampus": "CampusMixin",
              "HubMuseum": "MuseumMixin", "HubRating": "RatingMixin",
              "HubTicket": "TicketMixin", "HubVoices": "VoicesMixin",

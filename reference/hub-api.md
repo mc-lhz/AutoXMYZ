@@ -4,10 +4,10 @@
 > 事实来源 `tools/StudentHub/HubEndpoints.py`；本文件由
 > `tools/Build/gen_hub_api_md.py` 派生，**不要手改端点行**。
 
-- REST 端点 **260** 个（read 103 / write 157）+ WS **2** 条
+- REST 端点 **284** 个（read 114 / write 170）+ WS **2** 条
 - 基址 `https://api.xmyzstudent.com/api/v2`，Bearer token 鉴权
 - 信封 `{code, message, data}`，业务失败也是 HTTP 200，code!=200
-- 免凭据探测（GET 103 个）：公开 11 / 需登录 80 / 存在·需参数 12 —— 详见 `reference/hub-probe.json`（probe_hub_readonly.py）
+- 免凭据探测（GET 114 个）：公开 14 / 需登录 83 / 存在·需参数 17 —— 详见 `reference/hub-probe.json`（probe_hub_readonly.py）
 - 分页 `page` + `size`（部分端点 `pageSize`）
 
 ## WebSocket
@@ -50,6 +50,25 @@
 | DELETE | `/user/unbind-qq` | write | `unbindQQ` | — |
 | GET | `/user/users/{}/avatar` | read | `getUserAvatar` | 存在·需参数 |
 | GET | `/user/users/{}/profile` | read | `getUserProfile` | 存在·需参数 |
+
+
+## HubAdmission —— 纳新/准入（分组/成员/豁免/扫码 + 用户验证）
+
+| 方法 | 路径 | 类别 | 包装方法 | 探测 |
+|---|---|---|---|---|
+| POST | `/admin/admission/exempt` | write | `exemptAdminAdmission` | — |
+| GET | `/admin/admission/groups` | read | `getAdminAdmissionGroups` | 需登录 |
+| POST | `/admin/admission/kick` | write | `kickAdminAdmission` | — |
+| GET | `/admin/admission/members` | read | `getAdminAdmissionMembers` | 需登录 |
+| POST | `/admin/admission/resend` | write | `resendAdminAdmission` | — |
+| POST | `/admin/admission/revoke-exempt` | write | `revokeExemptAdminAdmission` | — |
+| GET | `/admin/admission/scan` | read | `scanAdminAdmission` | 需登录 |
+| POST | `/admin/admission/scan-fix` | write | `fixAdminAdmissionScan` | — |
+| POST | `/admission/confirm` | write | `confirmAdmission` | — |
+| GET | `/admission/qq-profile` | read | `getAdmissionQQProfile` | 存在·需参数 |
+| GET | `/admission/status` | read | `getAdmissionStatus` | 公开 |
+| GET | `/admission/token/{}` | read | `getAdmissionTokenByQQ` | 存在·需参数 |
+| POST | `/admission/verify` | write | `verifyAdmission` | — |
 
 
 ## HubPortal —— 门户（横幅/年级绑定/文件/音乐/QQ音乐）
@@ -341,3 +360,14 @@
 | PUT | `/admin/debate/rounds/{}/regenerate-password` | write | `regeneratePasswordAdminDebateRounds` | — |
 | PUT | `/admin/debate/rounds/{}/reset` | write | `resetAdminDebateRounds` | — |
 | PUT | `/admin/debate/rounds/{}/unlock` | write | `unlockAdminDebateRounds` | — |
+| GET | `/debate/active` | read | `getActiveDebateRounds` | 公开 |
+| GET | `/debate/me` | read | `getMyDebateIdentity` | 公开 |
+| PUT | `/debate/operator/rounds/{}` | write | `updateDebateOperatorRound` | — |
+| PUT | `/debate/operator/rounds/{}/active` | write | `activateDebateOperatorRound` | — |
+| PUT | `/debate/operator/rounds/{}/lock` | write | `lockDebateOperatorRound` | — |
+| PUT | `/debate/operator/rounds/{}/reset` | write | `resetDebateOperatorRound` | — |
+| POST | `/debate/operator/verify` | write | `verifyDebateOperator` | — |
+| GET | `/debate/results/{}` | read | `getDebateResultsById` | 存在·需参数 |
+| GET | `/debate/round/{}` | read | `getDebateRoundById` | 存在·需参数 |
+| POST | `/debate/vote` | write | `submitDebateVote` | — |
+| GET | `/debate/wechat/login` | read | `debateWechatLoginUrl` | 存在·需参数 |

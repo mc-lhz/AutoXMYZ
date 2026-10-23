@@ -127,13 +127,14 @@ class HubHttp(object):
 
     def _request(self, method: str, path: str, params: dict = None,
                  json_body: dict = None, files: dict = None, form: dict = None,
-                 timeout: int = 25):
+                 headers: dict = None, timeout: int = 25):
         url = path if path.startswith("http") else BASE + path
         self._throttle()
         Log.d("Hub", "%s %s params=%s json=%s"
               % (method, path, params, "<body>" if json_body else None))
         fn = getattr(self._s, method.lower())
-        r = fn(url, params=params, json=json_body, files=files, data=form, timeout=timeout)
+        r = fn(url, params=params, json=json_body, files=files, data=form,
+               headers=headers or None, timeout=timeout)
         ctype = r.headers.get("Content-Type", "")
         if "json" not in ctype:
             raise HubError(r.status_code, "非 JSON 响应: %s" % r.text[:120], path)
@@ -147,17 +148,20 @@ class HubHttp(object):
             raise HubAuthError(401, msg or "未授权", path)
         raise HubError(code, msg, path)
 
-    def get(self, path, params=None, **kw):
-        return self._request("GET", path, params=params, **kw)
+    def get(self, path, params=None, headers=None, **kw):
+        return self._request("GET", path, params=params, headers=headers, **kw)
 
-    def post(self, path, params=None, json=None, **kw):
-        return self._request("POST", path, params=params, json_body=json, **kw)
+    def post(self, path, params=None, json=None, headers=None, **kw):
+        return self._request("POST", path, params=params, json_body=json,
+                             headers=headers, **kw)
 
-    def put(self, path, params=None, json=None, **kw):
-        return self._request("PUT", path, params=params, json_body=json, **kw)
+    def put(self, path, params=None, json=None, headers=None, **kw):
+        return self._request("PUT", path, params=params, json_body=json,
+                             headers=headers, **kw)
 
-    def delete(self, path, params=None, json=None, **kw):
-        return self._request("DELETE", path, params=params, json_body=json, **kw)
+    def delete(self, path, params=None, json=None, headers=None, **kw):
+        return self._request("DELETE", path, params=params, json_body=json,
+                             headers=headers, **kw)
 
     def upload(self, path, filepath: str, businessType: str = None,
                field: str = "file", btField: str = "businessType"):
