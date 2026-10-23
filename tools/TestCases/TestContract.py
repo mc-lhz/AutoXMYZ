@@ -92,7 +92,9 @@ def structure_ok():
     need = ["SKILL.md", "AGENTS.md", "tools", "reference",
             "tools/Access/HttpTransport.py", "tools/Access/LoginSession.py",
             "tools/XMYZClient.py", "tools/TestCases/TestContract.py",
-            "reference/api.md"]
+            "tools/StudentHub/HubTransport.py", "tools/StudentHub/HubSession.py",
+            "tools/StudentHub/HubEndpoints.py", "tools/StudentHubClient.py",
+            "tools/TestCases/TestHub.py", "reference/api.md", "reference/hub-api.md"]
     miss = [p for p in need if not os.path.exists(os.path.join(ROOT, p))]
     return (not miss), ("缺失 %s" % miss if miss else "%d 项必备齐全" % len(need))
 
@@ -163,7 +165,8 @@ def no_credential_in_source():
 
 
 # 只跑 `-h` 有意义的模块：这些是用户会直接敲的命令行工具
-CLI_MODULES = {"XMYZClient.py", "LoginSession.py", "TestApiReadOnly.py"}
+CLI_MODULES = {"XMYZClient.py", "LoginSession.py", "TestApiReadOnly.py",
+               "StudentHubClient.py", "HubSession.py"}
 
 
 def help_smoke():
