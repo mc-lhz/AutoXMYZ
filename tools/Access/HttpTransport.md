@@ -5,7 +5,8 @@
 实际可写范围由服务端账号权限决定，客户端不越权、不枚举他人数据、
 不碰他人密码与审批流。
 
-方法：`get` / `post` / `paged`（桌面端分页 `start`+`limit`）/ `login` / `loadCookie` / `_bindUser`。
+方法：`get` / `post` / `destroy`（Ext CRUD 契约：`data=<单对象JSON含id>`，全站 !destroy 通用，
+growth-record 实测；传数组会报「id不能为空」）/ `paged`（分页 `start`+`limit`）/ `login` / `loadCookie` / `_bindUser`。
 
 ⚠️ 两个踩过的坑：
 

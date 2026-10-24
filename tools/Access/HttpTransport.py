@@ -177,6 +177,11 @@ class Http(object):
     def post(self, path: str, params: dict = None, **kw):
         return self._call(path, "POST", params, **kw)
 
+    def destroy(self, path: str, recordId: str, **kw):
+        """Ext CRUD 删除契约（全站 !destroy.action 通用，growth-record 实测）：
+        POST `data=<单对象 JSON，含 id>`。传数组会报「id不能为空」。"""
+        return self.post(path, {"data": json.dumps({"id": recordId})}, **kw)
+
     # ------------------------------------------------------------ 分页 ----
     def paged(self, path: str, params: dict = None, limit: int = 60,
               maxRows: int = 2000, **kw):
