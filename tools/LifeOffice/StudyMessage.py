@@ -22,11 +22,14 @@ class StudyMixin(object):
         """我的成绩单。GET /transcript/transcript!readByStudent.action"""
         return self.get("/transcript/transcript!readByStudent.action", dict(kw))
 
-    def transcriptDetail(self, id=None, **kw):
-        """成绩单详情。GET /transcript/transcript!detail.action"""
-        p = {"id": id}
+    def transcriptDetail(self, transcriptId=None, **kw):
+        """成绩单明细行。GET /transcript/transcript!getTranscriptByStudent.action
+        参数名是 transcriptId（传 id 会报 "Not all named parameters"）。
+        返回 data[0].content 为人类可读成绩行，itemNNN 为动态列。
+        ⚠️ 旧实现打 transcript!detail.action，该路由线上 404（GONE）。"""
+        p = {"transcriptId": transcriptId}
         p.update(kw)
-        return self.get("/transcript/transcript!detail.action", p)
+        return self.get("/transcript/transcript!getTranscriptByStudent.action", p)
 
     def physicalExamination(self, **kw):
         """体能测试结果。GET /edu/physical-examination!readByStudent.action"""
