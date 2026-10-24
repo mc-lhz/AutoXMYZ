@@ -58,7 +58,23 @@ def main():
     print("仅 m        = %d" % len(m1 - dset - m2))
     print()
 
-    all_eps = dset | m2 | m1
+    # 无 `!` 的直连路由（m3 微信端 / 招生 / UEditor）：EP_RE 天生抓不到，
+    # 逐一从新版 bundle 字面量核实后显式登记（2026-10-24 对账）。
+    # kind 交给 KIND() 的兜底（判 read）；其中 ueditor-plus 实为上传后端（写语义），
+    # 在 api.md 阅读时注意。
+    DIRECT_ROUTES = frozenset([
+        "m3/category.action",
+        "m3/recipient-detail.action",
+        "m3/shake-attendance/attendance-detail.action",
+        "m3/shake-attendance/daily-attendance-detail.action",
+        "m3/short-message-detail.action",
+        "m3/weixin/login.action",
+        "recruit/admission-school.action",
+        "recruit/physical-examination-form-detail.action",
+        "system/ueditor-plus.action",
+    ])
+
+    all_eps = dset | m2 | m1 | DIRECT_ROUTES
     rows = []
     for e in sorted(all_eps):
         src = []
