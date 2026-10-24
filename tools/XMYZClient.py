@@ -12,7 +12,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from Access.HttpTransport import Http, XmyzError, WriteDenied  # noqa: F401,E402
+from Access.HttpTransport import Http, XmyzError  # noqa: F401,E402
 from StudentBase.ProfileDict import ProfileMixin, DictMixin  # noqa: E402
 from LifeOffice.StudyMessage import StudyMixin, MessageMixin, AttachmentMixin  # noqa: E402
 from QualityCenter.QualityRead import QualityMixin  # noqa: E402
@@ -22,10 +22,10 @@ from CommunityCenter.VolunteerRead import CommunityMixin, VolunteerMixin  # noqa
 class XMYZClient(ProfileMixin, DictMixin, StudyMixin, MessageMixin,
                   AttachmentMixin, QualityMixin, CommunityMixin,
                   VolunteerMixin, Http):
-    """厦门一中信息校园综合应用系统 —— **纯只读**客户端。
+    """厦门一中信息校园综合应用系统客户端（读写均可用，能力政策 2026-10-24 修订）。
 
-    写操作在 `Access/HttpTransport.py::_guard` 处被强制拦截，
-    本类不提供任何绕过入口。
+    写操作不再被客户端拦截，实际可写范围由服务端账号权限决定；
+    纪律：只写本人数据、可逆优先、不碰他人密码与审批流。
     """
 
     def healthCheck(self):

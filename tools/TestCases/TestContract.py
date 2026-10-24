@@ -28,52 +28,31 @@ def check(name, fn):
     return ok
 
 
-# ------------------------------------------------------- 1 能力红线 ----
-def redline_blocks_write():
-    """红���①：写类端点必须在 _guard 处被拒。"""
-    from Access.HttpTransport import WriteDenied, _guard
-    cases = [
-        "/edu/growth-record!create.action",
-        "/activiti/business/xmyz-leave-detail!delete.action",
-        "/account/user!resetPassword.action",
-        "/edu/module-score!impByClassTeacher.action",
-        "/community/member!setLeader.action",
-        "/message/short-message-detail!send.action",   # send 是写
-        # 2026-10 新版 m2 对账新增的反向用例（曾有上百个 *Complete 漏判）：
-        "/activiti/business/cj-leave-detail!officeApprovalComplete.action",
-        "/activiti/business/bfxx-request-documents!report.action",  # 工作流上报
-        "/cjtcs/mobile!autograph.action",               # 体测签名 POST 保存
-        "/activiti/business/cj-student-leave-detail!enterSchool.action",
-        "/edu/match-awards-detail!delteAttachment.action",  # 站点把 delete 拼成 delte
-    ]
-    for c in cases:
-        try:
-            _guard(c)
-        except WriteDenied:
-            continue
-        return False, "未被拦截: %s" % c
-    return True, "%d 个写端点全部被拒" % len(cases)
+# ------------------------------------------------------- 1 能力政策 ----
+def policy_no_guard():
+    """能力政策（2026-10-24 修订）：读写均放行。
+    反向用例守新政策——若有人把旧 `_guard`/`WriteDenied` 加回来，这里必须红。"""
+    import inspect
+    from Access import HttpTransport as T
+    if hasattr(T, "_guard") or hasattr(T, "WriteDenied"):
+        return False, "旧红线机制（_guard/WriteDenied）仍在传输层，与修订后的政策冲突"
+    src = inspect.getsource(T.Http._call)
+    if "guard" in src.lower():
+        return False, "_call 里仍有 guard 残留"
+    return True, "传输层无拦截，读写均放行"
 
 
-def redline_allows_read():
-    """红线①的正面用例：只读端点不得被误拦（否则功能不可用）。"""
-    from Access.HttpTransport import _guard
-    for c in ["/edu/growth-record!read.action",
-              "/system/attachment!send.action",
-              "/edu/growth-record!export.action",
-              "/quality/quality!read.action",
-              "/activiti/business/student-leave!gradeTeacherPendingLeaveApprovalTasks.action",
-              "/fund/project-procurement-detail!findApprovedItems.action",
-              "/account/student-access-group!accessSituation.action"]:
-        try:
-            _guard(c)
-        except Exception as e:
-            return False, "误拦只读端点 %s: %s" % (c, e)
-    return True, "只读端点未被误拦"
+def policy_write_path_exists():
+    """正向用例：写操作必须可达（post 出口存在，且 Struts2 写全走 POST）。"""
+    from Access.HttpTransport import Http
+    for m in ("get", "post", "paged"):
+        if not hasattr(Http, m):
+            return False, "Http 缺 %s" % m
+    return True, "读写出口齐备（get/post/paged）"
 
 
 def redline_classifier_consistent():
-    """红线②：分类器把已知的写端点全判写。"""
+    """分类器口径一致性（文档统计用，不再做运行时拦截）。"""
     sys.path.insert(0, os.path.join(ROOT, "tools"))
     import endpoint_kind as ek
     bad = []
@@ -215,9 +194,9 @@ def help_smoke():
 def main():
     print("AutoXMYZ 契约审计（离线，无网络无凭据）")
     print("=" * 60)
-    for name, fn in [("红线·写端点被拒", redline_blocks_write),
-                     ("红线·只读不被误拦", redline_allows_read),
-                     ("红线·分类器一致", redline_classifier_consistent),
+    for name, fn in [("政策·无拦截", policy_no_guard),
+                     ("政策·写路径可达", policy_write_path_exists),
+                     ("政策·分类器一致", redline_classifier_consistent),
                      ("结构必备文件", structure_ok),
                      ("每 py 有同名 md", every_py_has_md),
                      ("每目录有 __init__", init_py_present),

@@ -1,8 +1,9 @@
-传输层：会话建立、只读调用、分页 + `XmyzError` / `WriteDenied`。
+传输层：会话建立、读写调用、分页 + `XmyzError`。
 
-**`_call` 是唯一出口，能力红线守在这里。** `_guard` 在发请求前拦下所有写语义端点
-（`WRITE_DENY_PREFIX`，60 余个动词前缀），命中即抛 `WriteDenied`。
-少数名字含动词但语义为读的（`attachment!send`、`!export`、`setRead`）在 `READ_ALLOW` 豁免。
+**`_call` 是唯一出口，读写均放行。** 能力政策 2026-10-24 由仓库所有者修订：
+早年的纯只读 `_guard` 已解除；`endpoint_kind.kind()` 保留为文档/统计口径。
+实际可写范围由服务端账号权限决定，客户端不越权、不枚举他人数据、
+不碰他人密码与审批流。
 
 方法：`get` / `post` / `paged`（桌面端分页 `start`+`limit`）/ `login` / `loadCookie` / `_bindUser`。
 

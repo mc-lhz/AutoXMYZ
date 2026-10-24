@@ -7,7 +7,7 @@
 
 | 门面 | 源站 | 鉴权 | 能力 |
 |---|---|---|---|
-| `XMYZClient` | `xmyz.xmedu.cn`（Struts2） | JSESSIONID | 纯只读 1176 端点，`_guard` 强制拦截写 |
+| `XMYZClient` | `xmyz.xmedu.cn`（Struts2） | JSESSIONID | 2606 端点读写均可用（政策 2026-10-24 修订） |
 | `StudentHubClient` | `api.xmyzstudent.com/api/v2` | Bearer token | 284 REST + 2 WS，读写齐备 |
 
 ## xmyz 三个前端入口
@@ -82,9 +82,9 @@ h.searchRatingItems("食堂")                     # 评分社区
 
 ## 红线
 
-**xmyz 纯只读。** 写操作由 `Access/HttpTransport.py::_guard` 在发请求前强制拦截，
-判定逻辑唯一来源是 `tools/endpoint_kind.py`（已用全量 2606 端点校验：
-1176 只读全放行、1430 写端点全拦）。需要提交、审批、删除、改密码时如实说明不在能力范围内。
+**xmyz 读写均可用（2026-10-24 修订）。** 早年 `_guard` 拦截已解除；
+`tools/endpoint_kind.py` 的读写分类保留为文档口径（1176 读 / 1430 写）。
+写纪律：只写本人数据、可逆优先、不碰他人密码与审批流——服务端权限仍是最终边界。
 
 **学社功能完备。** 站点为学生自建平台，写操作是需求本身（唱票、审核、发布）；
 传输层不设拦截，但删除类方法名显式含 delete，`HubEndpoints.is_write(path, method)`

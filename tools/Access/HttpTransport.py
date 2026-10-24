@@ -1,8 +1,11 @@
-"""传输层：会话建立、只读调用、登录、身份识别 + XmyzError。
+"""传输层：会话建立、调用、登录、身份识别 + XmyzError。
 
-设计约束（红线）：
-  - 本模块**只发只读请求**。`_guard` 会在发请求前拦下所有写语义端点，
-    拦截清单见 `WRITE_DENY_PREFIX`。这是能力红线，不靠调用方自觉。
+能力政策（2026-10-24 由仓库所有者修订）：
+  - 早期版本为「纯只读」，`_guard` 在发请求前强制拦截写语义端点；
+  - 现已解除拦截：**读写都放行**，写能力是本工具的需求本身。
+    `endpoint_kind.py::is_write` 保留，作为文档/统计口径（api.md 的 kind 列），
+    不再作为运行时闸门。实际可写范围由**服务端账号权限**决定——
+    无权限的写端点会被服务端拒绝，客户端不越权、不枚举他人数据。
 """
 import hashlib
 import json
@@ -42,26 +45,14 @@ SESSION_FILE = os.environ.get("AUTOMXYZ_SESSION") or os.path.join(_userDataDir()
 # 仓库里只保留**占位模板**，仅用于在未登录时给出可读提示。
 TEMPLATE_FILE = os.path.join(_REPO, "reference", ".session.json")
 
-# 守卫的数据源：tools/endpoint_kind.py 的分类器。
-#
-# ⚠️ 这里两次改错过方向，记在案：
-#   ① 最初是「动词前缀黑名单」——approve 只匹配到 approvedComplete 的前 7 字母，
-#      换个动词就漏；且未知动词默认放行，新增写端点自动变成「可调用」。
-#   ② 改成纯动作名白名单后更糟：带限定词的只读动作
-#      （readByParticipate / loadUserTree / readSimpleUser）全不在名单里，
-#      误拦 230/360 个只读端点；反过来 toDraft / signAll / setRead / resend
-#      这些写动作却在白名单里，红线反而破了。
-#   正确解：判定逻辑只有一份，放在 endpoint_kind.py，已用全量 683 端点校验
-#   （359 只读全放行 / 324 写端点全拦截）；_guard 只做转发，不再维护第二套名单。
-from endpoint_kind import is_write
+# 分类器：tools/endpoint_kind.py（历史 2026-10-24 前）曾用作运行时红线闸门，
+# 现在只做**文档/统计口径**（api.md 的 kind 列、合并清单的读写标注）。
+# 历史教训仍有效：判定逻辑只有一份，别在任何地方维护第二套名单。
+from endpoint_kind import is_write  # noqa: F401  （供文档/统计方复用）
 
 
 class XmyzError(Exception):
     pass
-
-
-class WriteDenied(XmyzError):
-    """命中能力红线时抛出。"""
 
 
 def sha1(text: str) -> str:
@@ -71,19 +62,6 @@ def sha1(text: str) -> str:
 def action_of(path: str) -> str:
     m = re.search(r"!([A-Za-z0-9_]+)\.action", path or "")
     return m.group(1) if m else ""
-
-
-def _guard(path: str) -> None:
-    """发请求前的强制拦截 —— 纯转发，判定逻辑在 `endpoint_kind.is_write`。
-
-    单一数据源的意义：分类器一处改动，守卫与契约审计同步生效，
-    不会再出现「审计说只读、守卫却拦」或反之的漂移。
-    """
-    if not is_write(path.split("?")[0].lstrip("/")):
-        return
-    raise WriteDenied(
-        "拒绝调用 %s —— 判定为写类端点。"
-        "本技能为纯只读，写操作不在能力范围内" % path)
 
 
 class Http(object):
@@ -152,7 +130,7 @@ class Http(object):
         用 `== False` 判会误报未登录，用 `== True` 判又永远失败。
         可靠判据是 profile 里有没有 `loginName`/`id`。
         """
-        d = self._call("/account/user!status.action", method="GET", _skipGuard=True)
+        d = self._call("/account/user!status.action", method="GET")
         self._userId = d.get("id") or d.get("studentId")
         if not (d.get("loginName") and self._userId):
             raise XmyzError(
@@ -172,10 +150,7 @@ class Http(object):
         return self._userId
 
     # ------------------------------------------------------------ 调用 ----
-    def _call(self, path: str, method: str = "GET", params: dict = None,
-              _skipGuard: bool = False, **kw):
-        if not _skipGuard:
-            _guard(path)
+    def _call(self, path: str, method: str = "GET", params: dict = None, **kw):
         url = path if path.startswith("http") else BASE + "/" + path.lstrip("/")
         fn = self._s.post if method.upper() == "POST" else self._s.get
         Log.d("Http", "%s %s params=%s" % (method.upper(), path, params))

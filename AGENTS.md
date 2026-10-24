@@ -51,7 +51,8 @@ tools/
 
 **两套能力模型，不要混：**
 
-1. **xmyz（校内系统）纯只读。** 能力红线由 `Access/HttpTransport.py::_guard` 在**发请求前**强制执行：
+1. **xmyz（校内系统）读写均可用（2026-10-24 政策修订）。** 早年 `_guard` 强制拦截已解除，
+   `endpoint_kind.kind()` 仅作文档/统计口径：
 
 - 判定逻辑**只有一份**，在 `tools/endpoint_kind.py::is_write`，已用全量 2606 端点校验
   （1176 只读全放行 / 1430 写端点全拦截）。写判定除前缀表外还有
@@ -70,7 +71,9 @@ tools/
 - 端点事实只有一份：`HubEndpoints.py`；`reference/hub-api.md` 与各 Mixin `.md`
   全部由 `Build/gen_hub_api_md.py` 派生，**改注册表不改文档 = TestHub 报漂移**
 
-新增能力时：先判断属于哪个源站。xmyz 只加只读；学社读写都可加但必须先进注册表。
+新增能力时：先判断属于哪个源站。xmyz 与学社读写都可加；
+**写纪律**：只写本人数据、可逆优先（create→delete 闭环验证）、
+不碰他人密码（`resetPassword` 不封装）、不碰他人审批流、删除类先查 id。
 
 ## 开发契约
 
