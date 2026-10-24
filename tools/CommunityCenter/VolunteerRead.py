@@ -15,8 +15,10 @@ class CommunityMixin(object):
         return self.get("/community/community!getComboStore.action", {})
 
     def myCommunities(self, **kw):
-        """我参与的社团。GET /community/member!readByStudent.action"""
-        return self.paged("/community/member!readByStudent.action", dict(kw))
+        """我参与的社团。GET /community/community!readByMember.action
+        ⚠️ 旧实现打 member!readByStudent.action——线上 404（GONE 类死路由），
+        2026-10-24 改打 readByMember（success:true，无加入时返回空数组）。"""
+        return self.paged("/community/community!readByMember.action", dict(kw))
 
     def memberEvaluate(self, **kw):
         """成员评价。GET /community/member-evaluate!readByStudent.action"""
