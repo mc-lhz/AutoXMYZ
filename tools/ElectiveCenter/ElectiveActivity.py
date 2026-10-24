@@ -49,7 +49,7 @@ class ElectiveActivityMixin(object):
         return self.get('/elective/activity-record!exportByCourseTeacher.action', dict(kw))
 
     def exportActivityRecordByTeacher(self, **kw):
-        """elective/activity-record!exportByTeacher.action （活动记录）"""
+        """elective/activity-record!exportByTeacher.action（⚠️ 线上 404 GONE） （活动记录）"""
         return self.get('/elective/activity-record!exportByTeacher.action', dict(kw))
 
     def importActivityRecord(self, **kw):
@@ -69,7 +69,7 @@ class ElectiveActivityMixin(object):
         return self.get('/elective/activity-record!readByCourseTeacher.action', dict(kw))
 
     def readActivityRecordByTeacher(self, **kw):
-        """elective/activity-record!readByTeacher.action （活动记录）"""
+        """elective/activity-record!readByTeacher.action（⚠️ 线上 404 GONE） （活动记录）"""
         return self.get('/elective/activity-record!readByTeacher.action', dict(kw))
 
     def readActivityRecordByTeacherOrPresident(self, **kw):
