@@ -17,11 +17,12 @@ from StudentBase.ProfileDict import ProfileMixin, DictMixin  # noqa: E402
 from LifeOffice.StudyMessage import StudyMixin, MessageMixin, AttachmentMixin  # noqa: E402
 from QualityCenter.QualityRead import QualityMixin  # noqa: E402
 from CommunityCenter.VolunteerRead import CommunityMixin, VolunteerMixin  # noqa: E402
+from ExamCenter.ExamPractice import ExamPracticeMixin  # noqa: E402
 
 
 class XMYZClient(ProfileMixin, DictMixin, StudyMixin, MessageMixin,
                   AttachmentMixin, QualityMixin, CommunityMixin,
-                  VolunteerMixin, Http):
+                  VolunteerMixin, ExamPracticeMixin, Http):
     """厦门一中信息校园综合应用系统客户端（读写均可用，能力政策 2026-10-24 修订）。
 
     写操作不再被客户端拦截，实际可写范围由服务端账号权限决定；

@@ -18,6 +18,7 @@ tools/
   LifeOffice/StudyMessage.py     成绩、成绩单、成长记录、作业、短信、通知、附件
   QualityCenter/QualityRead.py   综合素质评价（quality 域，20 个读取方法）
   CommunityCenter/VolunteerRead.py  社团（community）与志愿服务（volunteer）
+  ExamCenter/ExamPractice.py     会考练习（信息技术会考）与在线考试
   StudentHubClient.py            门面②：学社 xmyzstudent.com，功能完备（含写）
   StudentHub/
     HubTransport.py              学社传输层：Bearer、信封解包、限速、upload、WS 快照

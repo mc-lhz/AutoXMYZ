@@ -190,6 +190,11 @@ c.wsSnapshots("/ws/tally/activity/%d" % activityId, print, seconds=10)
 c.getMessages(); c.getUnreadMessageCount()          # 站内消息
 c.searchRatingItems("食堂")                          # 评分社区
 c.getVoiceQuestions(); c.createVoicesQuestionsAnswers(questionId, "内容")   # 声音问答
+
+# 会考练习（信息技术会考）
+c.getMyOnlineExamCombo()                                    # 我的考试场
+c.getQuestionBankCombo(examId=场id)                          # 题库
+c.getMyAnswerStats(examId=场id)                              # 答题统计（一次返回全部题库）
 c.getPublicTicketActivities(); c.getTicketsMy()      # 抢票
 c.getAdminMuseumEvents(); c.publishAdminMuseumEvents(id)        # 博物馆
 ```
