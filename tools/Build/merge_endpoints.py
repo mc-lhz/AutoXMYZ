@@ -73,12 +73,20 @@ def main():
         "recruit/physical-examination-form-detail.action",
         "system/ueditor-plus.action",
     ])
+    # 框架级端点：客户端/登录流在用，但菜单树下发的模块 JS 不引用它们，
+    # 旧 683 清单里 findUnread/statInfo 有、新合并曾漏——显式登记（source=desktop 框架）。
+    FRAMEWORK_ENDPOINTS = frozenset([
+        "account/user!getGrantedMenuTree.action",
+        "message/recipient!findUnread.action",
+        "message/recipient!statInfo.action",
+        "system/system!currentTime.action",
+    ])
 
-    all_eps = dset | m2 | m1 | DIRECT_ROUTES
+    all_eps = dset | m2 | m1 | DIRECT_ROUTES | FRAMEWORK_ENDPOINTS
     rows = []
     for e in sorted(all_eps):
         src = []
-        if e in dset:
+        if e in dset or e in FRAMEWORK_ENDPOINTS:
             src.append("desktop")
         if e in m2:
             src.append("m2")

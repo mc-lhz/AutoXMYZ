@@ -4,15 +4,15 @@
 
 | 前端 | 入口 | 技术栈 | 端点数 | 角色 |
 |---|---|---|---|---|
-| 桌面管理端 | `manager.html` | ExtJS 3.4，服务端驱动按需加载 | 489 | 门户「登录」按钮指向的正式入口 |
+| 桌面管理端 | `manager.html` | ExtJS 3.4，服务端驱动按需加载 | 491 | 门户「登录」按钮指向的正式入口 |
 | 移动端新版 | `m2.html` | Vue 3 + Vant，hash 路由 | 2154 | 待办审批 + 4 项委托功能 |
 | 移动端旧版 | `m.html` | Vue 2 + Vux，hash 路由 | 10 | 已被 m2 取代，m2 守卫失败时回落此处登录 |
 
-合并去重后 **2623** 个唯一端点：只读 1192 / 写类 1431。端点层几乎不重叠（三方共有 0 个），因为三个前端各写各的 Action 名；功能层互补。
+合并去重后 **2625** 个唯一端点：只读 1194 / 写类 1431。端点层几乎不重叠（三方共有 0 个），因为三个前端各写各的 Action 名；功能层互补。
 
 ## 授权口径
 
-本文清单由**登录后的菜单树**（`POST /account/user!getGrantedMenuTree.action`）下发，并按各菜单节点携带的 `action.jsFile` 定向抓取 97 个模块得到，因此 desktop 一列的 489 个端点**是当前账号有权访问的**，不是静态猜测。
+本文清单由**登录后的菜单树**（`POST /account/user!getGrantedMenuTree.action`）下发，并按各菜单节点携带的 `action.jsFile` 定向抓取 97 个模块得到，因此 desktop 一列的 491 个端点**是当前账号有权访问的**，不是静态猜测。
 m2.html 一列来自前端 bundle 静态提取，反映能力面，实际可用性以运行时权限为准。
 
 ## 登录契约
@@ -841,9 +841,9 @@ m2: `approvedComplete*`  `approvedComplete*`  `approvedComplete*`  `approvedComp
 ```
 `*` 后缀 = 写类。共 88 个（读 29 / 写 59）。
 
-### `account`（39）
+### `account`（40）
 
-**只读 11**
+**只读 12**
 
 | 端点 | 来源 | 实测 | 行数 | 顶层字段 |
 |---|---|---|---|---|
@@ -851,6 +851,7 @@ m2: `approvedComplete*`  `approvedComplete*`  `approvedComplete*`  `approvedComp
 | `account/dept!loadUserTree.action` | 桌面端 | REDIRECT | — | empty |
 | `account/user!calculateTotal.action` | 桌面端 | REDIRECT | — | empty |
 | `account/user!getCustomUser.action` | 桌面端+m2.html | ALIVE | 0 | total |
+| `account/user!getGrantedMenuTree.action` | 桌面端 | — | — | — |
 | `account/user!readSimple.action` | 桌面端 | GONE | — | html |
 | `account/user!readSimpleUser.action` | 桌面端 | REDIRECT | — | empty |
 | `account/user!readSimpleUserAndTeacher.action` | 桌面端 | ALIVE | 1 | total, data, success |
@@ -880,9 +881,9 @@ m2: `accessSituation`  `detail`  `forgotPassword*`  `getAccessStat`  `getCampusT
 ```
 `*` 后缀 = 写类。共 24 个（读 14 / 写 10）。
 
-### `message`（37）
+### `message`（38）
 
-**只读 19**
+**只读 20**
 
 | 端点 | 来源 | 实测 | 行数 | 顶层字段 |
 |---|---|---|---|---|
@@ -894,6 +895,7 @@ m2: `accessSituation`  `detail`  `forgotPassword*`  `getAccessStat`  `getCampusT
 | `message/message-grid!readByCategory.action` | 桌面端 | ALIVE | 1 | total, data, success |
 | `message/message-type!getDisplay.action` | 桌面端 | ALIVE | 2 | json_list |
 | `message/recipient!exportByShortMessage.action` | 桌面端 | REDIRECT | — | empty |
+| `message/recipient!findUnread.action` | 桌面端 | — | — | — |
 | `message/recipient!readByShortMessage.action` | 桌面端 | REDIRECT | — | empty |
 | `message/recipient!readNotReply.action` | 桌面端 | REDIRECT | — | empty |
 | `message/recipient!statInfo.action` | 桌面端 | REDIRECT | — | empty |
@@ -1891,7 +1893,7 @@ m2: `load`
 
 ## 机器可读
 
-- `endpoints.json` — 全部 2623 个端点，含 `sources` / `kind` / `menus` / `files`
+- `endpoints.json` — 全部 2625 个端点，含 `sources` / `kind` / `menus` / `files`
 - `validation.json` — 1176 个只读端点的实测响应结构
 - `menu_tree.json` — 菜单树原始响应（130 节点）
 - `desktop_endpoints.json` — 489 个桌面端端点，含来源 jsFile 与所属菜单名
