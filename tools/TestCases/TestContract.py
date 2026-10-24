@@ -39,6 +39,12 @@ def redline_blocks_write():
         "/edu/module-score!impByClassTeacher.action",
         "/community/member!setLeader.action",
         "/message/short-message-detail!send.action",   # send 是写
+        # 2026-10 新版 m2 对账新增的反向用例（曾有上百个 *Complete 漏判）：
+        "/activiti/business/cj-leave-detail!officeApprovalComplete.action",
+        "/activiti/business/bfxx-request-documents!report.action",  # 工作流上报
+        "/cjtcs/mobile!autograph.action",               # 体测签名 POST 保存
+        "/activiti/business/cj-student-leave-detail!enterSchool.action",
+        "/edu/match-awards-detail!delteAttachment.action",  # 站点把 delete 拼成 delte
     ]
     for c in cases:
         try:
@@ -55,7 +61,10 @@ def redline_allows_read():
     for c in ["/edu/growth-record!read.action",
               "/system/attachment!send.action",
               "/edu/growth-record!export.action",
-              "/quality/quality!read.action"]:
+              "/quality/quality!read.action",
+              "/activiti/business/student-leave!gradeTeacherPendingLeaveApprovalTasks.action",
+              "/fund/project-procurement-detail!findApprovedItems.action",
+              "/account/student-access-group!accessSituation.action"]:
         try:
             _guard(c)
         except Exception as e:
@@ -70,7 +79,13 @@ def redline_classifier_consistent():
     bad = []
     for kw, must in [("ApprovedComplete", True), ("delete", True),
                      ("destroy", True), ("imp", True), ("read", False),
-                     ("export", False), ("getComboStore", False)]:
+                     ("export", False), ("getComboStore", False),
+                     ("!report.action", True),          # 工作流上报（区别于 reportByTeacher）
+                     ("!autograph.action", True),
+                     ("officeApprovalComplete", True),
+                     ("gridCreate", True),
+                     ("reportByTeacher", False),
+                     ("PendingLeaveApprovalTasks", False)]:
         for ep in ALL_EP:
             if kw in ep and ek.is_write(ep) != must:
                 bad.append(ep)

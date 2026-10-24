@@ -29,6 +29,7 @@ def _work_dir():
 import requests
 
 BASE = "https://xmyz.xmedu.cn"
+TIMEOUT = 8
 WD = _work_dir()
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36")
@@ -95,9 +96,9 @@ def probe(s, ep):
     for method in ("GET", "POST"):
         try:
             if method == "GET":
-                r = s.get(url, params=params, timeout=20, allow_redirects=False)
+                r = s.get(url, params=params, timeout=TIMEOUT, allow_redirects=False)
             else:
-                r = s.post(url, data=params, timeout=20, allow_redirects=False)
+                r = s.post(url, data=params, timeout=TIMEOUT, allow_redirects=False)
             rec = {"method": method, "status": r.status_code,
                    "len": len(r.content),
                    "ct": (r.headers.get("Content-Type") or "")[:40],
@@ -127,38 +128,51 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--rate", type=float, default=0.2)
+    ap.add_argument("--timeout", type=int, default=8)
     a = ap.parse_args()
 
     rows = json.load(open(os.path.join(WD, "endpoints.json"), encoding="utf-8"))
     reads = [r for r in rows if r["kind"] == "read"]
     if a.limit:
         reads = reads[:a.limit]
-    print("待探测只读端点: %d" % len(reads))
+    print("待探测只读端点: %d" % len(reads), flush=True)
 
     s = load_session()
     r = s.post(BASE + "/account/user!status.action", timeout=15)
-    print("[会话自检] %s loggedIn=%s" % (r.status_code, '"loggedIn":true' in r.text.replace(" ", "")))
+    print("[会话自检] %s loggedIn=%s" % (r.status_code, '"loggedIn":true' in r.text.replace(" ", "")), flush=True)
 
+    global TIMEOUT
+    TIMEOUT = a.timeout
+    # 增量落盘 + 断点续跑：1176 个端点在中断后不必从头再来
+    outPath = os.path.join(WD, "validation.json")
     results = []
+    if os.path.exists(outPath):
+        results = json.load(open(outPath, encoding="utf-8"))
+        print("[resume] 已有 %d 条，跳过" % len(results))
+    done = {r["endpoint"] for r in results}
     t0 = time.time()
     for i, row in enumerate(reads, 1):
+        if row["endpoint"] in done:
+            continue
         res = probe(s, row["endpoint"])
         res["menus"] = row["menus"]
         res["sources"] = row["sources"]
         results.append(res)
         if i % 25 == 0 or res["verdict"] not in ("ALIVE",):
-            print("  [%3d/%3d] %-58s %s" % (i, len(reads), res["endpoint"][:58], res["verdict"]))
+            print("  [%3d/%3d] %-58s %s" % (i, len(reads), res["endpoint"][:58], res["verdict"]), flush=True)
+        if len(results) % 50 == 0:
+            with open(outPath, "w", encoding="utf-8") as f:
+                json.dump(results, f, ensure_ascii=False, indent=1)
         time.sleep(a.rate)
 
-    out = os.path.join(WD, "validation.json")
-    with open(out, "w", encoding="utf-8") as f:
+    with open(outPath, "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=1)
 
     from collections import Counter
     c = Counter(r["verdict"] for r in results)
     print("\n用时 %.1fs" % (time.time() - t0))
     print("结果分布:", dict(c))
-    print("-> %s" % out)
+    print("-> %s" % outPath)
 
 
 if __name__ == "__main__":

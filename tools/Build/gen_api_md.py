@@ -116,38 +116,70 @@ w("## 端点清单")
 w("")
 w("> 只读端点带实测判定；写类端点仅登记，**本技能不封装任何写操作**。")
 w("")
+def _isM2Only(r):
+    return r["sources"] == ["m2"]
+
+
 for ns in sorted(by_ns, key=lambda x: -(len(by_ns[x]["read"]) + len(by_ns[x]["write"]))):
     grp = by_ns[ns]
     tot = len(grp["read"]) + len(grp["write"])
     if tot < 1:
         continue
+    # m2 专属行（新版 2026-10 新增的大头）走紧凑清单；涉及桌面端的保留全表格
+    detail = [r for r in grp["read"] + grp["write"] if not _isM2Only(r)]
+    m2only = [r for r in grp["read"] + grp["write"] if _isM2Only(r)]
     w("### `%s`（%d）" % (ns, tot))
     w("")
-    if grp["read"]:
-        w("**只读 %d**" % len(grp["read"]))
+    if detail:
+        dRead = [r for r in detail if r["kind"] == "read"]
+        dWrite = [r for r in detail if r["kind"] == "write"]
+        if dRead:
+            w("**只读 %d**" % len(dRead))
+            w("")
+            w("| 端点 | 来源 | 实测 | 行数 | 顶层字段 |")
+            w("|---|---|---|---|---|")
+            for r in sorted(dRead, key=lambda x: x["endpoint"]):
+                v = vmap.get(r["endpoint"])
+                verdict = v["verdict"] if v else "—"
+                rowsn = keys = "—"
+                if v:
+                    a = (v.get("attempts") or [{}])[0]
+                    rowsn = str(a.get("rows")) if a.get("rows") is not None else "—"
+                    keys = ", ".join(a.get("keys") or []) or a.get("type", "—")
+                src = "+".join(SRC_CN.get(s, s) for s in r["sources"])
+                w("| `%s` | %s | %s | %s | %s |" % (r["endpoint"], src, verdict, rowsn, keys))
+            w("")
+        if dWrite:
+            w("**写类 %d**（不封装）" % len(dWrite))
+            w("")
+            w("| 端点 | 来源 |")
+            w("|---|---|")
+            for r in sorted(dWrite, key=lambda x: x["endpoint"]):
+                src = "+".join(SRC_CN.get(s, s) for s in r["sources"])
+                w("| `%s` | %s |" % (r["endpoint"], src))
+            w("")
+    if m2only:
+        # 紧凑：命名空间前缀相同，只列 action 名；写类加 * 号
+        w("m2 专属（新版 bundle 静态提取，能力面以运行时权限为准）：")
         w("")
-        w("| 端点 | 来源 | 实测 | 行数 | 顶层字段 |")
-        w("|---|---|---|---|---|")
-        for r in sorted(grp["read"], key=lambda x: x["endpoint"]):
-            v = vmap.get(r["endpoint"])
-            verdict = v["verdict"] if v else "—"
-            rowsn = keys = "—"
-            if v:
-                a = (v.get("attempts") or [{}])[0]
-                rowsn = str(a.get("rows")) if a.get("rows") is not None else "—"
-                keys = ", ".join(a.get("keys") or []) or a.get("type", "—")
-            src = "+".join(SRC_CN.get(s, s) for s in r["sources"])
-            menu = r["menus"][0] if r["menus"] else ""
-            w("| `%s` | %s | %s | %s | %s |" % (r["endpoint"], src, verdict, rowsn, keys))
-        w("")
-    if grp["write"]:
-        w("**写类 %d**（不封装）" % len(grp["write"]))
-        w("")
-        w("| 端点 | 来源 |")
-        w("|---|---|")
-        for r in sorted(grp["write"], key=lambda x: x["endpoint"]):
-            src = "+".join(SRC_CN.get(s, s) for s in r["sources"])
-            w("| `%s` | %s |" % (r["endpoint"], src))
+        acts = sorted(
+            ("%s%s" % (r["endpoint"].split("!")[1][:-len(".action")], "*" if r["kind"] == "write" else ""),
+             r["kind"])
+            for r in m2only)
+        line, lines = "m2: ", []
+        for a, _ in acts:
+            if len(line) + len(a) + 3 > 96:
+                lines.append(line.rstrip(" "))
+                line = "    "
+            line += "`%s`  " % a
+        lines.append(line.rstrip(" "))
+        w("```")
+        for ln in lines:
+            w(ln)
+        w("```")
+        w("`*` 后缀 = 写类。共 %d 个（读 %d / 写 %d）。"
+          % (len(m2only), sum(1 for r in m2only if r["kind"] == "read"),
+             sum(1 for r in m2only if r["kind"] == "write")))
         w("")
 
 w("## 机器可读")

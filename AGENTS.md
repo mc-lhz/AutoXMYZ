@@ -53,8 +53,10 @@ tools/
 
 1. **xmyz（校内系统）纯只读。** 能力红线由 `Access/HttpTransport.py::_guard` 在**发请求前**强制执行：
 
-- 判定逻辑**只有一份**，在 `tools/endpoint_kind.py::is_write`，已用全量 683 端点校验
-  （359 只读全放行 / 324 写端点全拦截）
+- 判定逻辑**只有一份**，在 `tools/endpoint_kind.py::is_write`，已用全量 2606 端点校验
+  （1176 只读全放行 / 1430 写端点全拦截）。写判定除前缀表外还有
+  **后缀通则**（`WRITE_SUFFIX`：*Complete/*Approval/*Save/*Create/*Update——
+  新版 m2 上百个工作流动作靠它归位，逐个枚举必漏）
 - `_guard` 只做**转发**，不得在传输层维护第二套名单 ——
   曾经在 `_guard` 里另写白名单，结果误拦 230/360 个只读端点，
   同时把 `toDraft`/`signAll`/`setRead`/`resend` 这些写动作放行了（见「已踩过的坑」第 3 条）

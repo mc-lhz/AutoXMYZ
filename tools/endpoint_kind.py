@@ -14,7 +14,7 @@ EP_RE = re.compile(r"^/?(?P<ns>[A-Za-z0-9_\-/]+?)!(?P<act>[A-Za-z0-9_]+)\.action
 READ_EXACT = {
     "read", "list", "load", "detail", "detailJosn", "query", "search", "get",
     "find", "findRead", "count", "stat", "statInfo", "statByClassTeacher",
-    "statByGradeTeacher", "exists", "check", "preview", "html", "report",
+    "statByGradeTeacher", "exists", "check", "preview", "html",
     "reportByTeacher", "detailJosn", "history", "pending", "readPending",
     "getComboStore", "getTree", "getComboStoreCacheable", "getComboStoreBySubjectTeacher",
     "getComboStoreByGradeTeacher", "getSubCategory", "getMainMenu",
@@ -42,18 +42,25 @@ READ_EXACT = {
 
 # 会改状态的动词（action 名以这些词开头即判写）
 WRITE_PREFIX = (
-    "create", "update", "save", "delete", "destroy", "remove", "add", "insert",
-    "modify", "edit", "submit", "approve", "approved", "notApproved", "completed",
-    "complete", "imp", "import", "upload", "reset", "change", "resend", "input",
-    "copy", "move", "transfer", "bind", "unbind", "enable", "disable", "publish",
-    "release", "withdraw", "revoke", "revert", "cancel", "confirm", "accept",
-    "refuse", "reject", "return", "releaseRecord", "toDraft", "sort", "set",
-    "batch", "mark", "toAttachment", "generatePdfAndHtml", "delRecord",
-    "start", "finish", "sign", "apply", "assign", "reply", "readDialogSubmit",
-    "updateSound", "updateTheme", "sendSms", "changeSms", "forgot",
+    "create", "update", "save", "delete", "delte", "destroy", "remove", "add",
+    "insert", "modify", "edit", "submit", "approve", "approved", "notApproved",
+    "completed", "complete", "imp", "import", "upload", "reset", "change",
+    "resend", "input", "copy", "move", "transfer", "bind", "unbind", "enable",
+    "disable", "publish", "release", "withdraw", "revoke", "revert", "cancel",
+    "confirm", "accept", "refuse", "reject", "return", "releaseRecord", "toDraft",
+    "sort", "set", "batch", "mark", "toAttachment", "generatePdfAndHtml",
+    "delRecord", "start", "finish", "sign", "apply", "assign", "reply",
+    "readDialogSubmit", "updateSound", "updateTheme", "sendSms", "changeSms",
+    "forgot", "lock",
 )
+# ⚠️ "delte" 不是手误：站点源码就把 delete 拼成 delte
+#   （edu/match-awards-detail!delteAttachment、elective/activity-record!delteActivityPhotos）
 
-# 明确写但不在前缀表里的补充
+# 写语义后缀（工作流动作的大量变体都以这些词结尾，逐个枚举必漏——
+# 2026-10 对账新版 m2 时 officeApprovalComplete 等上百个审批动作就是这样漏的）
+WRITE_SUFFIX = ("Complete", "Approval", "Save", "Create", "Update")
+
+# 明确写但不在前缀/后缀表里的补充
 WRITE_EXACT = {
     "setRead", "markAsUnread", "batchUpdateRead", "batchUpdateSign", "updateSound",
     "updateTheme", "notifyOfficeComplete", "principalApprovalComplete",
@@ -61,6 +68,19 @@ WRITE_EXACT = {
     "deptLeaderApprovalComplete", "generalAffairsApprovalComplete",
     "legalApprovalComplete", "notifyOfficeComplete", "copy", "deleteDraft",
     "toAttachment", "move",
+    # 2026-10 新版 m2 对账新增（语义逐一核过调用点）：
+    "report",             # 全部 45 个 !report 均为工作流/体测「上报」；旧 683 清单 0 处使用
+    "autograph",          # cjtcs 等体测移动端：onSubmit POST +「保存成功」
+    "enterSchool", "leaveSchool",   # 销假/离校登记（visitor 与 leave 工作流）
+    "manuallyLeave", "manuallySign",  # 摇号考勤补登
+    "openDoor",           # 远程开门
+    "noticeLeave",        # 发离校通知
+    "evaluate",           # 社团成员评价
+    "borrow",             # 图书借阅
+    "emptyByStudent",     # 清空答题
+    "clickConfirm",       # 点击确认
+    "circularPeerReviewer",  # 设置传阅人
+    "gridCreate", "gridUpdate",  # office/calendar 网格编辑
 }
 
 # 特例：namespace 决定语义的
@@ -96,6 +116,9 @@ def is_write(ep):
         return True
     for p in WRITE_PREFIX:
         if act == p or act.startswith(p):
+            return True
+    for s in WRITE_SUFFIX:
+        if act.endswith(s):
             return True
     if act in READ_EXACT:
         return False

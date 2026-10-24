@@ -20,7 +20,7 @@ description: 厦门一中校内系统（xmyz.xmedu.cn，只读）与学生社区
 
 | 门面 | 源站 | 鉴权 | 能力 |
 |---|---|---|---|
-| `XMYZClient` | `https://xmyz.xmedu.cn`（Struts2，`模块!方法.action`） | JSESSIONID | 纯只读，359 只读端点 |
+| `XMYZClient` | `https://xmyz.xmedu.cn`（Struts2，`模块!方法.action`） | JSESSIONID | 纯只读，1176 只读端点 |
 | `StudentHubClient` | `https://api.xmyzstudent.com/api/v2`（JSON API） | Bearer token | 284 REST + 2 WS，读写齐备 |
 
 纯 HTTP 完成全部操作，无需浏览器。
@@ -37,7 +37,7 @@ description: 厦门一中校内系统（xmyz.xmedu.cn，只读）与学生社区
 
 三者**共用同一 `JSESSIONID`**（`Path=/`，同源），一份会话通吃。
 
-合并去重后 **683** 个唯一端点（只读 359 / 写类 324）。
+合并去重后 **2606** 个唯一端点（只读 1176 / 写类 1430；2026-10-24 真实会话对账，m2 已改版重建）。
 **端点层几乎不重叠**（三方共有 0 个）——三个前端各写各的 Action 名；
 功能层互补，桌面端没有 `activiti/*` 审批流，移动端没有 `quality/*` 综评面板。
 
@@ -128,7 +128,7 @@ python tools/TestCases/TestContract.py                     # 契约与红线审�
 
 ## 端点清单怎么来的（`tools/Build/`）
 
-683 个端点不是静态扒出来的，是「登录 → 菜单树 → 定向抓模块」跑出来的。
+2606 个端点不是静态扒出来的，是「登录 → 菜单树 → 定向抓模块」跑出来的（2026-10-24 重跑：桌面端 97/97 模块零漂移，m2 新版 2161 chunk 全量重提）。
 想复现或站点改版后重建，按序执行：
 
 ```bash

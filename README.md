@@ -7,7 +7,7 @@
 
 | 门面 | 源站 | 鉴权 | 能力 |
 |---|---|---|---|
-| `XMYZClient` | `xmyz.xmedu.cn`（Struts2） | JSESSIONID | 纯只读 359 端点，`_guard` 强制拦截写 |
+| `XMYZClient` | `xmyz.xmedu.cn`（Struts2） | JSESSIONID | 纯只读 1176 端点，`_guard` 强制拦截写 |
 | `StudentHubClient` | `api.xmyzstudent.com/api/v2` | Bearer token | 284 REST + 2 WS，读写齐备 |
 
 ## xmyz 三个前端入口
@@ -22,11 +22,16 @@
 
 ### xmyz 端点枚举结果
 
-合并去重后 **683** 个唯一端点（只读 359 / 写类 324）：
+合并去重后 **2606** 个唯一端点（只读 1176 / 写类 1430；2026-10-24 用真实会话
+对线上重新对账）：
 
 - **桌面端 489** —— 登录后由菜单树按当前账号权限下发，再按每个菜单节点携带的
   `action.jsFile` 定向抓取 **97 个模块**（1.5 MB）得到，是当前账号有权访问的实况
-- **m2.html 185** / **m.html 7** —— 前端 bundle 静态提取
+  （本次重抓 97/97 全命中，端点集与初版清单**零漂移**）
+- **m2.html 2116** —— 前端已改版重建（rolldown 细粒度 chunk 2161 个/13.9 MB），
+  端点面从 185 涨到 2116（本学年新增大量 activiti 工作流）；bundle 静态提取，
+  能力面以运行时权限为准
+- **m.html 10** —— legacy 懒加载，保留初版登记
 
 端点层三方几乎不重叠（共有 0 个）；功能层互补：桌面端独占 `community`(111 社团)、
 `elective`(96 选课)、`quality`(30 综评)、`volunteer`(19)；
@@ -78,8 +83,8 @@ h.searchRatingItems("食堂")                     # 评分社区
 ## 红线
 
 **xmyz 纯只读。** 写操作由 `Access/HttpTransport.py::_guard` 在发请求前强制拦截，
-判定逻辑唯一来源是 `tools/endpoint_kind.py`（已用全量 683 端点校验：
-359 只读全放行、324 写端点全拦）。需要提交、审批、删除、改密码时如实说明不在能力范围内。
+判定逻辑唯一来源是 `tools/endpoint_kind.py`（已用全量 2606 端点校验：
+1176 只读全放行、1430 写端点全拦）。需要提交、审批、删除、改密码时如实说明不在能力范围内。
 
 **学社功能完备。** 站点为学生自建平台，写操作是需求本身（唱票、审核、发布）；
 传输层不设拦截，但删除类方法名显式含 delete，`HubEndpoints.is_write(path, method)`
@@ -103,6 +108,13 @@ h.searchRatingItems("食堂")                     # 评分社区
 6. **学社端点提取不能用单一正则** —— 管理端基址是模板字面量
    `` `${ratingConst0}/...` ``（约 50 端点不以 `/` 开头），
    纯「以 / 开头」的匹配全部漏掉；必须解析常量后取**并集**再对账。
+7. **分类器不能逐个枚举，要有后缀通则** —— 新版 m2 的上百个工作流动作
+   （officeApprovalComplete / noticeComplete / deptLeaderComplete…）若靠
+   WRITE_EXACT 枚举必漏；改为 `WRITE_SUFFIX = (Complete, Approval, Save,
+   Create, Update)` 通则后一次归位。另外 merge 曾内置第二套 WRITE_HINT
+   正则算 kind（违反单一来源红线），已废除。
+8. **网关限流会伪装成 404/500** —— 连发 ~70 请求后 xmyz/学社都会 502/超时，
+   探测必须二遍慢速重探（学社实测 29 个假 missing 复测全部存在）。
 
 完整清单与探测结果见 [`reference/api.md`](reference/api.md)（xmyz）与
 [`reference/hub-api.md`](reference/hub-api.md)（学社）。

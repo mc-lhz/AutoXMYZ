@@ -5,6 +5,8 @@
   python merge_endpoints.py
 """
 import json, os, re, io, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from endpoint_kind import kind as KIND
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 def _work_dir():
@@ -70,7 +72,9 @@ def main():
         rows.append({
             "endpoint": e,
             "sources": src,
-            "kind": "write" if WRITE_HINT.search(e) else "read",
+            # ⚠️ kind 唯一来源是 endpoint_kind（红线）。本文件曾有第二套
+            # WRITE_HINT 正则，对新版 m2 的上百个 *Complete 动作漏判 —— 已废除。
+            "kind": KIND(e),
             "menus": info.get("menus", []),
             "files": sorted(set(info.get("sources", [])))[:6],
         })
