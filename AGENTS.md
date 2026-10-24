@@ -19,6 +19,15 @@ tools/
   QualityCenter/QualityRead.py   综合素质评价（quality 域，20 个读取方法）
   CommunityCenter/VolunteerRead.py  社团（community）与志愿服务（volunteer）
   ExamCenter/ExamPractice.py     会考练习（信息技术会考）与在线考试
+  ElectiveCenter/                选课系统（课程/结果/活动记录/考勤，59 方法）
+  ScheduleCenter/                个人日程（日历网格）与分类消息
+  PsychCenter/                   心理咨询预约
+  WorkCardCenter/                作业打卡
+  VoteCenter/                    投票
+  EvaluationCenter/              教师评测反馈 + 校本课程评测
+  CommunityCenter/CommunityExtra.py  社团考试成绩查看/报名/出勤/课程下拉
+  CommunityCenter/VolunteerNew.py    志愿者(新)：报名/签到/调查/AIMUNC/美辩
+  LifeOffice/WorkSubmit.py       作业内容/附件提交（写）
   StudentHubClient.py            门面②：学社 xmyzstudent.com，功能完备（含写）
   StudentHub/
     HubTransport.py              学社传输层：Bearer、信封解包、限速、upload、WS 快照

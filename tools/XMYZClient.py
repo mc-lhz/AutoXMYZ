@@ -18,11 +18,31 @@ from LifeOffice.StudyMessage import StudyMixin, MessageMixin, AttachmentMixin  #
 from QualityCenter.QualityRead import QualityMixin  # noqa: E402
 from CommunityCenter.VolunteerRead import CommunityMixin, VolunteerMixin  # noqa: E402
 from ExamCenter.ExamPractice import ExamPracticeMixin  # noqa: E402
+from ElectiveCenter.ElectiveCourse import ElectiveCourseMixin  # noqa: E402
+from ElectiveCenter.ElectiveResult import ElectiveResultMixin  # noqa: E402
+from ElectiveCenter.ElectiveActivity import ElectiveActivityMixin  # noqa: E402
+from ElectiveCenter.ElectiveAttendance import ElectiveAttendanceMixin  # noqa: E402
+from ScheduleCenter.Calendar import CalendarMixin  # noqa: E402
+from ScheduleCenter.CategoryMessage import CategoryMessageMixin  # noqa: E402
+from PsychCenter.PsychAppointment import PsychAppointmentMixin  # noqa: E402
+from WorkCardCenter.WorkCard import WorkCardMixin  # noqa: E402
+from VoteCenter.Vote import VoteMixin  # noqa: E402
+from EvaluationCenter.TeacherEvaluation import TeacherEvaluationMixin  # noqa: E402
+from EvaluationCenter.ElectiveEvaluation import ElectiveEvaluationMixin  # noqa: E402
+from CommunityCenter.CommunityExtra import CommunityExtraMixin  # noqa: E402
+from CommunityCenter.VolunteerNew import VolunteerNewMixin  # noqa: E402
+from LifeOffice.WorkSubmit import WorkSubmitMixin  # noqa: E402
 
 
 class XMYZClient(ProfileMixin, DictMixin, StudyMixin, MessageMixin,
                   AttachmentMixin, QualityMixin, CommunityMixin,
-                  VolunteerMixin, ExamPracticeMixin, Http):
+                  VolunteerMixin, ExamPracticeMixin, ElectiveCourseMixin,
+                  ElectiveResultMixin, ElectiveActivityMixin,
+                  ElectiveAttendanceMixin, CalendarMixin, CategoryMessageMixin,
+                  PsychAppointmentMixin, WorkCardMixin, VoteMixin,
+                  TeacherEvaluationMixin, ElectiveEvaluationMixin,
+                  CommunityExtraMixin, VolunteerNewMixin, WorkSubmitMixin,
+                  Http):
     """厦门一中信息校园综合应用系统客户端（读写均可用，能力政策 2026-10-24 修订）。
 
     写操作不再被客户端拦截，实际可写范围由服务端账号权限决定；

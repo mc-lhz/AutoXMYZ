@@ -195,6 +195,16 @@ c.getVoiceQuestions(); c.createVoicesQuestionsAnswers(questionId, "内容")   # 
 c.getMyOnlineExamCombo()                                    # 我的考试场
 c.getQuestionBankCombo(examId=场id)                          # 题库
 c.getMyAnswerStats(examId=场id)                              # 答题统计（一次返回全部题库）
+
+# 选课 / 日程 / 心理预约 / 打卡 / 投票 / 评测（2026-10 全量补齐）
+c.readElectiveCourseByStudentOrParent(**kw)                 # 我的选课课程
+c.getComboStoreByStudentElective(**kw)                      # 可选课程下拉
+c.readCalendar()                                            # 个人日程
+c.readAppointment()                                         # 心理预约
+c.getComboStoreWorkCard()                                   # 打卡任务
+c.getFormVoteQuestion() / c.voteVoteResult(**kw)             # 投票
+c.getEvaluationFormEvaluationItem(**kw)                      # 教师评测表单
+各域完整方法表见 tools/<域>/<Mixin>.md
 c.getPublicTicketActivities(); c.getTicketsMy()      # 抢票
 c.getAdminMuseumEvents(); c.publishAdminMuseumEvents(id)        # 博物馆
 ```
