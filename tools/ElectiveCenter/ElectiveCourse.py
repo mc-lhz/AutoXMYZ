@@ -52,6 +52,19 @@ class ElectiveCourseMixin(object):
         """elective/course!loadTreeByTeacher.action （活动记录 / 我的考勤记录 / 预选课）"""
         return self.get('/elective/course!loadTreeByTeacher.action', dict(kw))
 
+    def myElectiveSelection(self, electiveId, **kw):
+        """我的选课结果（便捷）：返回 (selectedCourseList, 课程行, 信封)。
+
+        GET /elective/course!readByStudentOrParent?electiveId=<批次id>
+        ⚠️ electiveId 必填（缺时报「id不能为空」）；且**不能与其它批次串用**。
+        响应顶层还有 studentName / maxCourseCount / token，本方法原样带回。
+        """
+        r = self.get("/elective/course!readByStudentOrParent.action",
+                     dict({"electiveId": electiveId, "start": 0, "limit": 60}, **kw))
+        if not isinstance(r, dict):
+            return [], [], r
+        return r.get("selectedCourseList") or [], r.get("data") or [], r
+
     def readElectiveCourseByStudentOrParent(self, **kw):
         """elective/course!readByStudentOrParent.action （选课）"""
         return self.get('/elective/course!readByStudentOrParent.action', dict(kw))
