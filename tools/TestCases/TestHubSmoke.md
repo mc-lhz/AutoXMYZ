@@ -18,3 +18,9 @@ python -B tools/TestCases/TestHubSmoke.py
 
 46 个可安全冒烟方法：**OK 33 / 403无权限 11 / BIZ-400 2**
 （getAdminAdmissionMembers 缺 groupId、getGradeExams 未绑好分数）。
+
+## 运行建议
+
+- **全量冒烟默认放后台/按需**：学校服务器单请求 1~3s，串行全程约 2~4 分钟，
+  期间每 20 个打一次进度；不要串进前台查询链——单点查询秒回，与冒烟不是一回事。
+- 串行+限速是安全设计（实测网关连发 ~70 请求即 502 限流），**不要改并行**。

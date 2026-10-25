@@ -21,3 +21,9 @@ python -B tools/TestCases/TestMethodSmoke.py --report r.json  # 出报告
 
 PASS 66 / BIZ 41 / NET 7 / **FAIL404 2**（elective/activity-record 的
 readByTeacher、exportByTeacher，已在 ElectiveActivity.md 标注）。
+
+## 运行建议
+
+- **全量冒烟默认放后台/按需**：学校服务器单请求 1~3s，串行全程约 2~4 分钟，
+  期间每 20 个打一次进度；不要串进前台查询链——单点查询秒回，与冒烟不是一回事。
+- 串行+限速是安全设计（实测网关连发 ~70 请求即 502 限流），**不要改并行**。

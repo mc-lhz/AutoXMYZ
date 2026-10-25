@@ -42,6 +42,7 @@ def main():
 
     c = XMYZClient()
     results = []
+    total = 0  # noqa
     from collections import Counter
     res = Counter()
 
@@ -92,6 +93,8 @@ def main():
             detail = msg[:60]
         results.append({"method": name, "verdict": verdict, "detail": detail})
         res[verdict] += 1
+        if len(results) % 20 == 0:
+            print(f"  ... 已测 {len(results)} 个（{dict(res)}）", flush=True)
         if verdict in ("FAIL404", "ERR"):
             print(f"  [{verdict}] {name} {detail}", flush=True)
         time.sleep(a.rate)

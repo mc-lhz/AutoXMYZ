@@ -69,6 +69,9 @@ def main():
         except Exception as e:
             res["NET/ERR"] += 1
             details.append((name, str(e)[:50]))
+        done = sum(res.values())
+        if done % 20 == 0:
+            print(f"  ... 已测 {done} 个（{dict(res)}）", flush=True)
         time.sleep(a.rate)
 
     print("学社具名方法冒烟（GET 型+无必填）:", sum(res.values()), "个")
