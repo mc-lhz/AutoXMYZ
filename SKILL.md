@@ -96,7 +96,11 @@ c.schoolTermCombo()               # 学期下拉
 ```bash
 python tools/XMYZClient.py --health     # 会话自检
 python tools/XMYZClient.py --summary    # 跨域摘要
+python -B tools/TestCases/TestMethodSmoke.py   # 具名方法线上冒烟（GET+read 安全集）
 ```
+
+成绩趋势（transcript 全量 → 科目×场次矩阵 / xlsx）：
+`LifeOffice/ScoreTrend.py` 的 `collectTrend / toXlsx / toConsole`。）
 
 ---
 

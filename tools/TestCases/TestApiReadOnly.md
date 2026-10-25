@@ -1,5 +1,7 @@
 只读端点全量探测 35 项，可重复运行。
-`--limit N` 快速冒烟，`--report` 输出报告 JSON。
+`--limit N` 快速冒烟，`--report` 输出报告 JSON —— **报告产物写 build_data
+（`AUTOMXYZ_WORK`）不入库**：reference/ 体积预算留给文档本身（移出 14.8KB 报告后
+约 134/150KB）。
 
 ⚠️ 判定口径：本系统有两类响应——
 
