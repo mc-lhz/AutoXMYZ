@@ -20,6 +20,8 @@ tools/
   CommunityCenter/VolunteerRead.py  社团（community）与志愿服务（volunteer）
   ExamCenter/ExamPractice.py     会考练习（信息技术会考）与在线考试
   SelectSubjectCenter/SelectSubject.py  选科 3+1+2（m2 独有入口：状态/提交/确认/PDF/签名）
+  StudentCenter/                 学生向零引用端点收口（43 法：综评/考勤/宿量/借出/
+                                 成绩分析/家长变体/学生照片等，2026-10-25 终检）
   ElectiveCenter/                选课系统（课程/结果/活动记录/考勤，59 方法）
   ScheduleCenter/                个人日程（日历网格）与分类消息
   PsychCenter/                   心理咨询预约

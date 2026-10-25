@@ -27,6 +27,10 @@ from ScheduleCenter.CategoryMessage import CategoryMessageMixin  # noqa: E402
 from PsychCenter.PsychAppointment import PsychAppointmentMixin  # noqa: E402
 from WorkCardCenter.WorkCard import WorkCardMixin  # noqa: E402
 from SelectSubjectCenter.SelectSubject import SelectSubjectMixin  # noqa: E402
+from StudentCenter.ScoreExtras import ScoreExtrasMixin  # noqa: E402
+from StudentCenter.QualityExtras import QualityExtrasMixin  # noqa: E402
+from StudentCenter.LifeRecords import LifeRecordsMixin  # noqa: E402
+from StudentCenter.AccountExtras import AccountExtrasMixin  # noqa: E402
 from VoteCenter.Vote import VoteMixin  # noqa: E402
 from EvaluationCenter.TeacherEvaluation import TeacherEvaluationMixin  # noqa: E402
 from EvaluationCenter.ElectiveEvaluation import ElectiveEvaluationMixin  # noqa: E402
@@ -41,7 +45,8 @@ class XMYZClient(ProfileMixin, DictMixin, StudyMixin, MessageMixin,
                   ElectiveResultMixin, ElectiveActivityMixin,
                   ElectiveAttendanceMixin, CalendarMixin, CategoryMessageMixin,
                   PsychAppointmentMixin, WorkCardMixin, VoteMixin,
-                  SelectSubjectMixin,
+                  SelectSubjectMixin, ScoreExtrasMixin, QualityExtrasMixin,
+                  LifeRecordsMixin, AccountExtrasMixin,
                   TeacherEvaluationMixin, ElectiveEvaluationMixin,
                   CommunityExtraMixin, VolunteerNewMixin, WorkSubmitMixin,
                   Http):
