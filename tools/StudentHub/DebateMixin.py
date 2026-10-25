@@ -24,7 +24,7 @@ class DebateMixin(object):
     # -- POST /admin/debate/rounds
     def createAdminDebateRounds(self, payload):
         path = '/admin/debate/rounds'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- PUT /admin/debate/rounds/{}
     def updateAdminDebateRounds(self, roundId, payload):

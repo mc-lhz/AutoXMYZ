@@ -74,7 +74,7 @@ class PortalMixin(object):
     # -- POST /admin/banners
     def createAdminBanner(self, payload):
         path = '/admin/banners'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /admin/banners/{}/toggle-status
     def toggleAdminBannerStatus(self, id):
@@ -88,7 +88,7 @@ class PortalMixin(object):
     # -- POST /grade/bind
     def bindGrade(self, payload):
         path = '/grade/bind'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- PUT /admin/banners/{}
     def updateAdminBanner(self, id, payload):

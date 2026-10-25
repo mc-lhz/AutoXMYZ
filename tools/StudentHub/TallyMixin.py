@@ -44,7 +44,7 @@ class TallyMixin(object):
     # -- POST /admin/tally/activities/{}/candidates
     def createAdminTallyActivitiesCandidates(self, id, payload):
         path = '/admin/tally/activities/{}/candidates'.format(id)
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /admin/tally/activities/{}/undo
     def undoAdminTallyActivities(self, id):

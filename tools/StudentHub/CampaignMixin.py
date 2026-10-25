@@ -74,7 +74,7 @@ class CampaignMixin(object):
     # -- POST /admin/campaigns
     def createAdminCampaigns(self, payload):
         path = '/admin/campaigns'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /admin/campaigns/{}/activate
     def activateAdminCampaigns(self, campaignId):
@@ -89,17 +89,17 @@ class CampaignMixin(object):
     # -- POST /admin/campaigns/{}/stage-operation
     def stageOperationAdminCampaigns(self, campaignId, payload):
         path = '/admin/campaigns/{}/stage-operation'.format(campaignId)
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /submissions
     def createResourceSubmissions(self, payload):
         path = '/submissions'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /voting/vote
     def voteVoting(self, payload):
         path = '/voting/vote'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- PUT /admin/campaigns/{}
     def updateAdminCampaigns(self, campaignId, payload):

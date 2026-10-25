@@ -74,22 +74,22 @@ class CampusMixin(object):
     # -- POST /admin/buildings
     def createAdminBuildings(self, payload):
         path = '/admin/buildings'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /admin/buildings/time-periods
     def createAdminBuildingsTimePeriods(self, payload):
         path = '/admin/buildings/time-periods'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /admin/campuses
     def createAdminCampuses(self, payload):
         path = '/admin/campuses'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /admin/time-periods
     def createAdminResourceTimePeriods(self, payload):
         path = '/admin/time-periods'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- PUT /admin/buildings/{}
     def updateAdminBuildings(self, buildingId, payload):

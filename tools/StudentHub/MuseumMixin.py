@@ -59,17 +59,17 @@ class MuseumMixin(object):
     # -- POST /admin/museum/events
     def createAdminMuseumEvents(self, payload):
         path = '/admin/museum/events'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /admin/museum/events/batch
     def batchAdminMuseumEvents(self, payload):
         path = '/admin/museum/events/batch'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /admin/museum/events/{}/blocks
     def createAdminMuseumEventsBlocks(self, eventId, payload):
         path = '/admin/museum/events/{}/blocks'.format(eventId)
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /admin/museum/events/{}/blocks/sort
     def sortAdminMuseumEventsBlocks(self, eventId, ids):
@@ -99,7 +99,7 @@ class MuseumMixin(object):
     # -- POST /admin/museum/moments/batch
     def batchAdminMuseumMoments(self, payload):
         path = '/admin/museum/moments/batch'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /admin/museum/moments/{}/approve
     def approveAdminMuseumMoments(self, momentId):
@@ -109,17 +109,17 @@ class MuseumMixin(object):
     # -- POST /admin/museum/moments/{}/reject
     def rejectAdminMuseumMoments(self, momentId, payload):
         path = '/admin/museum/moments/{}/reject'.format(momentId)
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /admin/museum/moments/{}/takedown
     def takedownAdminMuseumMoments(self, momentId, payload):
         path = '/admin/museum/moments/{}/takedown'.format(momentId)
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /admin/museum/tags
     def createAdminMuseumTags(self, payload):
         path = '/admin/museum/tags'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /admin/museum/tags/{}/toggle-status
     def toggleStatusAdminMuseumTags(self, tagId):

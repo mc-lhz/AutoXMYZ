@@ -69,12 +69,12 @@ class TicketMixin(object):
     # -- POST /admin/ticket/activities
     def createAdminTicketActivities(self, payload):
         path = '/admin/ticket/activities'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /admin/ticket/activities/{}/sessions
     def createAdminTicketActivitiesSessions(self, id, payload):
         path = '/admin/ticket/activities/{}/sessions'.format(id)
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /admin/ticket/activities/{}/status
     def createAdminTicketActivitiesStatus(self, id, status):
@@ -84,12 +84,12 @@ class TicketMixin(object):
     # -- POST /admin/ticket/tickets/batch-review
     def batchReviewAdminTicketTickets(self, payload):
         path = '/admin/ticket/tickets/batch-review'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /admin/ticket/tickets/{}/review
     def reviewAdminTicketTickets(self, ticketId, payload):
         path = '/admin/ticket/tickets/{}/review'.format(ticketId)
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /admin/ticket/verify/use
     def useAdminTicketVerify(self, ticketCode):
@@ -99,7 +99,7 @@ class TicketMixin(object):
     # -- POST /tickets/grab
     def grabTickets(self, payload):
         path = '/tickets/grab'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- PUT /admin/ticket/activities/{}
     def updateAdminTicketActivities(self, id, payload):

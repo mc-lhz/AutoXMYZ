@@ -79,17 +79,17 @@ class RatingMixin(object):
     # -- POST /rating-community/comments
     def createRatingCommunityComments(self, payload):
         path = '/rating-community/comments'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /rating-community/contributions
     def createRatingCommunityContributions(self, payload):
         path = '/rating-community/contributions'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /rating-community/contributions/batch-rating-items
     def batchRatingItemsRatingCommunityContributions(self, payload):
         path = '/rating-community/contributions/batch-rating-items'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- POST /rating-community/contributions/upload-image
     def uploadContributionImage(self, filepath):
@@ -103,7 +103,7 @@ class RatingMixin(object):
     # -- POST /rating-community/ratings
     def createRatingCommunityRatings(self, payload):
         path = '/rating-community/ratings'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- GET /admin/rating-community/statistics/overview
     def getStatisticsOverview(self):
@@ -128,7 +128,7 @@ class RatingMixin(object):
     # -- POST /admin/rating-community/schools
     def createSchools(self, payload):
         path = '/admin/rating-community/schools'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- PUT /admin/rating-community/schools/{}
     def updateSchools(self, schoolId, payload):
@@ -158,7 +158,7 @@ class RatingMixin(object):
     # -- POST /admin/rating-community/major-sections
     def createMajorSections(self, payload):
         path = '/admin/rating-community/major-sections'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- PUT /admin/rating-community/major-sections/{}
     def updateMajorSections(self, sectionId, payload):
@@ -188,7 +188,7 @@ class RatingMixin(object):
     # -- POST /admin/rating-community/minor-sections
     def createMinorSections(self, payload):
         path = '/admin/rating-community/minor-sections'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- PUT /admin/rating-community/minor-sections/{}
     def updateMinorSections(self, sectionId, payload):
@@ -223,7 +223,7 @@ class RatingMixin(object):
     # -- POST /admin/rating-community/categories
     def createCategories(self, payload):
         path = '/admin/rating-community/categories'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- PUT /admin/rating-community/categories/{}
     def updateCategories(self, categoryId, payload):
@@ -258,7 +258,7 @@ class RatingMixin(object):
     # -- POST /admin/rating-community/rating-items
     def createRatingItems(self, payload):
         path = '/admin/rating-community/rating-items'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- PUT /admin/rating-community/rating-items/{}
     def updateRatingItems(self, itemId, payload):
@@ -323,7 +323,7 @@ class RatingMixin(object):
     # -- POST /admin/rating-community/collections
     def createCollections(self, payload):
         path = '/admin/rating-community/collections'
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- PUT /admin/rating-community/collections/{}
     def updateCollections(self, collectionId, payload):
@@ -353,7 +353,7 @@ class RatingMixin(object):
     # -- POST /admin/rating-community/collections/{}/items
     def createCollectionsItems(self, collectionId, payload):
         path = '/admin/rating-community/collections/{}/items'.format(collectionId)
-        return self.post(path)
+        return self.post(path, json=payload)
 
     # -- DELETE /admin/rating-community/collections/{}/items/{}
     def deleteCollectionsItems(self, collectionId, itemId):
@@ -378,7 +378,7 @@ class RatingMixin(object):
     # -- POST /admin/rating-community/contributions/{}/review
     def reviewContributions(self, contributionId, payload):
         path = '/admin/rating-community/contributions/{}/review'.format(contributionId)
-        return self.post(path)
+        return self.post(path, json=payload)
 
 
 def _clean(d):

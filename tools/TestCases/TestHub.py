@@ -82,6 +82,28 @@ def facade_composition():
     return (not miss), ("11 域方法齐备" if not miss else "缺 %s" % miss)
 
 
+def no_dropped_payload():
+    """防回归：带 payload 参数的 POST 包装必须真的把 body 发出去。
+
+    生成器曾批量产出 27+ 个「有 payload 参数却 return self.post(path)」的
+    空体方法（服务端 400 请求体格式错误），真实闭环才发现。"""
+    import glob
+    bad = []
+    for f in glob.glob(os.path.join(ROOT, "tools", "StudentHub", "*Mixin.py")):
+        lines = open(f, encoding="utf-8").read().split("\n")
+        for i, line in enumerate(lines):
+            if not line.strip().startswith("def ") or "payload" not in line:
+                continue
+            for j in range(i + 1, min(i + 6, len(lines))):
+                s = lines[j]
+                if s.strip().startswith("def "):
+                    break
+                if ".post(path)" in s and "json" not in s and "params=" not in s:
+                    bad.append(line.strip()[4:line.index("(")])
+                    break
+    return (not bad), ("payload 全量透传" if not bad else "空体方法 %s" % bad[:5])
+
+
 def facade_no_method_collision():
     """各 mixin 方法不得同名覆盖（同名即丢端点）。"""
     from StudentHubClient import StudentHubClient
@@ -245,6 +267,7 @@ def main():
                      ("注册表·读写对称", is_write_symmetry),
                      ("门面·组合与 MRO", facade_composition),
                      ("门面·无方法覆盖", facade_no_method_collision),
+                     ("门面·payload 不丢体", no_dropped_payload),
                      ("传输·信封解包", envelope_ok),
                      ("传输·业务失败抛错", envelope_fail_raises),
                      ("传输·401 抛错", auth401_raises),
