@@ -208,6 +208,11 @@ c.readAppointment()                                         # 心理预约
 c.getComboStoreWorkCard()                                   # 打卡任务
 c.getFormVoteQuestion() / c.voteVoteResult(**kw)             # 投票
 c.getEvaluationFormEvaluationItem(**kw)                      # 教师评测表单
+
+# 选科（3+1+2，2026-10 补齐；入口在 m2 移动端）
+c.mySelectSubject()                     # 我的选科汇总（组合/确认/签名 id）
+c.getSubjectCombo(part1=True)           # 物理类/历史类下拉
+c.selectSubjectReportUrl(结果id)         # 确认表 PDF URL
 各域完整方法表见 tools/<域>/<Mixin>.md
 c.getPublicTicketActivities(); c.getTicketsMy()      # 抢票
 c.getAdminMuseumEvents(); c.publishAdminMuseumEvents(id)        # 博物馆
