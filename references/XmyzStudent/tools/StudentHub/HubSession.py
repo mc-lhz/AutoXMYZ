@@ -133,7 +133,7 @@ def loginToken(token: str) -> dict:
 def _ocrImage(path: str) -> str:
     """复用 xmyz 登录的验证码 OCR（同源同参，591iq 实测有效）。"""
     try:
-        from Access.LoginSession import ocrCaptcha
+        from Common.Ocr import ocrCaptcha
     except Exception:
         return ""
     return ocrCaptcha(path)
