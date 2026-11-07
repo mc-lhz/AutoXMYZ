@@ -1,0 +1,90 @@
+name: Release
+
+# 发版自动产出技能包：Release 发布时（预发布同样触发）打一个
+# 591iqAutomatic.zip 并挂为该 Release 的附件。
+#
+# 不需要你本地有任何令牌——用的是 runner 自带的 GITHUB_TOKEN。
+# 人工发版流程：改 VERSION → 提交 → 打 tag 推 tag → 网页端建 Release 点发布。
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "手动重跑时：要挂载的 tag 名"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  pack:
+    name: 打包并挂载 591iqAutomatic.zip
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 确定 tag
+        id: tag
+        # ⚠️ tag 名必须经 env 传进 shell，**不能**用 `${{ }}` 直接插值进 run：
+        # 表达式是文本替换，一个含 `"` 或 `$(...)` 的 tag 名就能在 runner 上执行任意命令
+        # （2026-10-05 静态审计发现，已修）。workflow_dispatch 用输入值，
+        # release 事件用 tag_name。
+        env:
+          TAG_INPUT: ${{ github.event.inputs.tag }}
+          TAG_RELEASED: ${{ github.event.release.tag_name }}
+        run: |
+          TAG="${TAG_INPUT:-$TAG_RELEASED}"
+          if [ -z "$TAG" ]; then echo "拿不到 tag 名"; exit 1; fi
+          echo "value=$TAG" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG"
+
+      - name: 校验 VERSION 与打包
+        # 不要再用 `python … | tee dist/pack.log`：shell 在建立管道时就会打开
+        # dist/pack.log，而此时 dist/ 还不存在（PackSkill 是之后才建目录的），
+        # tee 失败 + 默认的 pipefail 会让这一步无谓变红。日志直接进 step 输出即可。
+        env:
+          TAG: ${{ steps.tag.outputs.value }}
+        run: |
+          python -X utf8 tools/Release/PackSkill.py \
+            --require-clean \
+            --version-check "$TAG" \
+            --out dist/591iqAutomatic.zip
+
+      - name: 写入 job summary
+        if: always()
+        env:
+          TAG: ${{ steps.tag.outputs.value }}
+        run: |
+          echo "### 技能包 $TAG" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f dist/591iqAutomatic.zip ]; then
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "条目 : $(python -c "import zipfile;print(len([n for n in zipfile.ZipFile('dist/591iqAutomatic.zip').namelist() if not n.endswith('/')]))")" >> "$GITHUB_STEP_SUMMARY"
+            echo "体积 : $(du -h dist/591iqAutomatic.zip | cut -f1)" >> "$GITHUB_STEP_SUMMARY"
+            echo "sha256: $(sha256sum dist/591iqAutomatic.zip | cut -d' ' -f1)" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "**打包失败，未产出 dist/591iqAutomatic.zip**" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: 挂为 Release 附件
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag.outputs.value }}
+        run: |
+          gh release upload "$TAG" \
+            dist/591iqAutomatic.zip --clobber
+
+      - name: 复核附件已挂上
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag.outputs.value }}
+        run: |
+          gh release view "$TAG" \
+            --json assets --jq '.assets[].name'

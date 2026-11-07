@@ -1,0 +1,400 @@
+"""写实记录与活动课程总结的评论互动（读 / 发 / 删 / 点赞名单）。
+
+契约（2026-10-24 前端 bundle 抓包结论，已在 reference 口径外补记）：
+- 记录评论列表**内嵌在记录详情**：`queryRecord(...)` 返回的 `recordComment` 字段
+- 发记录评论：POST /record/comment {id:<recordId>, comment[, replyUserId, replyUserName]}
+  响应 data = 新评论对象
+- 删记录评论：POST /record/delComment {id:<commentId>}
+- 活动总结评论列表：GET /evaluateActivity/queryComment {summaryId} → data 数组
+- 发活动评论：POST /evaluateActivity/comment {summaryId, comment[, replyUserId]}
+- 删活动评论：POST /evaluateActivity/delComment {id:<commentId>}
+- 点赞名单：GET /evaluateActivity/queryFavour {summaryId} → [{userName,...}]
+- **记录点赞开关**：POST /record/favour {type:"1"=赞/"0"=取消, id:<recordId>}
+  （记录行的点赞名单在 `recordFavour` 槽位：`[{userId,userName}]`）
+- **活动总结点赞开关**：POST /evaluateActivity/favour {type:"1"/"0", summaryId}
+- **活动收藏开关**：GET /evaluateActivity/collect {eventId, type:"1"=收藏/"2"=取消}
+  （活动详情 `isCollect` 字段回读）
+
+⚠️ 发 / 删评论都是**写操作**：评论对同校可见（含他人记录下的评论），
+调用前必须向用户确认；成功判据 = 重读列表核对条数与内容，不看返回值。
+评论对象键名以服务端为准，渲染时按 comment/content 兜底。
+
+⚠️ **评论对象嵌套完整 userInfo**（2026-10-25 实测：含 `identityCard` 身份证、
+`unifiedExaminationNumber` 考号等 51 字段，与记录详情同源）。本模块对
+`userInfo` 统一白名单收敛（复用 `USERINF_KEEP`），**任何打印/日志不得直出原始对象**。
+"""
+import os
+import sys
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, _HERE)
+sys.path.insert(1, os.path.abspath(os.path.join(_HERE, "..")))
+
+from Common.Logcat import Log  # noqa: E402
+from RecordCenter.RecordQuery import USERINF_KEEP  # noqa: E402
+
+
+def redactComment(c):
+    """评论对象里嵌套的 `userInfo` 按白名单收敛（纯函数，可单测）。
+
+    服务端在评论响应里原样返回 51 字段 userInfo（含身份证/考号）——
+    前端展示用不到，本层统一丢弃。
+    """
+    if not isinstance(c, dict):
+        return c
+    out = dict(c)
+    inf = out.get("userInfo")
+    if isinstance(inf, dict):
+        out["userInfo"] = {k: inf.get(k) for k in USERINF_KEEP if k in inf}
+    return out
+
+
+def _redactListEnvelope(out):
+    """信封里的行数组统一跑 redactComment（sm 系列列表行含评论者/点赞者 userInfo）。"""
+    if isinstance(out, dict) and isinstance(out.get("list"), list):
+        return dict(out, list=[redactComment(c) for c in out["list"]])
+    return out
+
+
+class CommentMixin:
+    """评论域 mixin：记录评论 + 活动课程总结评论。读多写少，写方法一律先确认后调用。"""
+
+    def recordComments(self, recordId, allowOther=False):
+        """某条写实记录的评论列表（内嵌在记录详情 recordComment 字段）。
+
+        allowOther 语义同 queryRecord：读他人记录下的评论显式传 True（留 WARNING）。
+        返回前对每条评论的嵌套 userInfo 做白名单收敛（见 redactComment）。
+        """
+        d = self.queryRecord(recordId, redact=True, allowOther=allowOther)
+        return [redactComment(c) for c in (d.get("recordComment") or [])]
+
+    def commentRecord(self, recordId, text, replyUserId=None, replyUserName=None):
+        """发记录评论（写）。返回新评论对象（userInfo 已收敛）；失败抛 IQError。"""
+        data = {"id": recordId, "comment": text}
+        if replyUserId:
+            data["replyUserId"] = replyUserId
+        if replyUserName:
+            data["replyUserName"] = replyUserName
+        out = redactComment(self.post("/record/comment", data))
+        # ⚠️ 日志只记 id：响应原文含完整 userInfo，不得直出（2026-10-25 事故）
+        Log.d("RecordComment", "commentRecord %s -> id=%s"
+              % (recordId, (out or {}).get("id") if isinstance(out, dict) else out))
+        return out
+
+    def delRecordComment(self, commentId):
+        """删记录评论（写，不可撤销）。id 是评论 id，不是记录 id。"""
+        return self.post("/record/delComment", {"id": commentId})
+
+    def activityComments(self, summaryId):
+        """活动课程总结的评论列表（GET queryComment，data 为数组；userInfo 已收敛）。"""
+        lst = self.get("/evaluateActivity/queryComment", {"summaryId": summaryId}) or []
+        return [redactComment(c) for c in lst]
+
+    def commentActivity(self, summaryId, text, replyUserId=None):
+        """发活动总结评论（写）。返回已收敛对象。"""
+        data = {"summaryId": summaryId, "comment": text}
+        if replyUserId:
+            data["replyUserId"] = replyUserId
+        return redactComment(self.post("/evaluateActivity/comment", data))
+
+    def delActivityComment(self, commentId):
+        """删活动总结评论（写，不可撤销）。"""
+        return self.post("/evaluateActivity/delComment", {"id": commentId})
+
+    def activityFavours(self, summaryId):
+        """活动总结点赞名单（只读）。"""
+        return self.get("/evaluateActivity/queryFavour", {"summaryId": summaryId}) or []
+
+    def recordFavours(self, recordId, allowOther=False):
+        """记录的点赞名单（只读：queryRecord 的 `recordFavour` 槽位，[{userId,userName}]）。
+
+        allowOther 语义同 queryRecord；自己记录的点赞回执校验用它。
+        """
+        d = self.queryRecord(recordId, redact=True, allowOther=allowOther)
+        return d.get("recordFavour") or []
+
+    def favourRecord(self, recordId, like=True):
+        """记录点赞 / 取消（**写**）：POST /record/favour {type:"1"/"0", id}。
+
+        回执校验用 recordFavours()（名单 ±1 且含/不含本人）。
+        """
+        return self.post("/record/favour",
+                         {"type": "1" if like else "0", "id": recordId})
+
+    def favourActivity(self, summaryId, like=True):
+        """活动总结点赞 / 取消（**写**）：POST /evaluateActivity/favour {type, summaryId}。
+
+        回执校验用 activityFavours()（名单条数 ±1）。
+        """
+        return self.post("/evaluateActivity/favour",
+                         {"type": "1" if like else "0", "summaryId": summaryId})
+
+    def collectActivity(self, eventId, collect=True):
+        """活动收藏 / 取消（**写**）：GET /evaluateActivity/collect。
+
+        ⚠️ type 取值与 favour 家族不同：**"1"=收藏 / "2"=取消**（前端由
+        `1+(isCollect?1:0)` 推得）；回执校验用 activityInfo(eventId).isCollect（"0"/"1"）。
+        """
+        return self.get("/evaluateActivity/collect",
+                        {"eventId": eventId, "type": "1" if collect else "2"})
+
+    def receivedComments(self, userId=None, offset=0, limit=20):
+        """某人**收到的评论**列表（个人主页 social 模块；缺省本人）。
+
+        ⚠️ 行内嵌评论者的完整 `userInfo`（51 字段，含身份证/考号）——
+        返回前用 redactComment 白名单收敛；分页键是 pageRowBounds。
+        """
+        out = self.get("/sm/comment",
+                       {"userId": int(userId or self.userId),
+                        "pageRowBounds": {"offset": offset, "limit": limit}})
+        return _redactListEnvelope(out)
+
+    def receivedFavours(self, userId=None, offset=0, limit=20):
+        """某人**收到的赞**列表（个人主页 social 模块；缺省本人）。结构/脱敏同 receivedComments。"""
+        out = self.get("/sm/favour",
+                       {"userId": int(userId or self.userId),
+                        "pageRowBounds": {"offset": offset, "limit": limit}})
+        return _redactListEnvelope(out)
+
+
+def _commentText(c):
+    """评论正文兜底取值：键名以服务端为准，comment/content 都试。"""
+    return c.get("comment") or c.get("content") or ""
+
+
+def _findComment(lst, commentId):
+    for c in lst:
+        if str(c.get("id")) == str(commentId):
+            return c
+    return None
+
+
+def main():
+    import argparse
+
+    from Access.HttpTransport import IQError
+    from IqClient import IQClient
+
+    ap = argparse.ArgumentParser(
+        description="写实记录 / 活动课程总结 评论互动 CLI。发与删都是写操作："
+                    "默认只预览，显式 --yes 才真正写入；成功判据是重读回执。",
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("action", choices=["show", "post", "del", "favours",
+                                       "activity-show", "activity-post", "activity-del",
+                                       "like", "activity-like", "activity-collect"],
+                    help="show 看记录评论 / post 发 / del 删；"
+                         "activity-* 针对活动课程总结；favours 看点赞名单；"
+                         "like 记录点赞 / activity-like 活动总结点赞 / activity-collect 活动收藏")
+    ap.add_argument("--token")
+    ap.add_argument("-u", "--user")
+    ap.add_argument("-p", "--password")
+    ap.add_argument("--record", help="记录 recordId（show/post/del/like 用）")
+    ap.add_argument("--summary", help="活动总结 summaryId（activity-*/favours 用）")
+    ap.add_argument("--event", help="活动 eventId（activity-collect 用）")
+    ap.add_argument("--comment-id", help="评论 id（del 用）")
+    ap.add_argument("--off", action="store_true",
+                    help="like / activity-like / activity-collect：执行「取消」而非点赞/收藏")
+    g = ap.add_mutually_exclusive_group()
+    g.add_argument("--text", help="评论正文（短文本用）")
+    g.add_argument("--text-file", help="评论正文 UTF-8 文本文件路径")
+    ap.add_argument("--reply-user-id", type=int, help="被回复人 userId（可选）")
+    ap.add_argument("--reply-user-name", help="被回复人姓名（可选）")
+    ap.add_argument("--allow-other", action="store_true",
+                    help="show 他人记录下的评论时必须显式传（留痕）")
+    ap.add_argument("--yes", action="store_true", help="确认写入（post/del 必需）")
+    ap.add_argument("--verbose", action="store_true", help="打开 DEBUG 日志")
+    a = ap.parse_args()
+    if a.verbose:
+        from Common.Logcat import setVerbose
+        setVerbose()
+
+    token = a.token or os.environ.get("IQ_SSO_TOKEN", "")
+    if not (token or (a.user and a.password)):
+        print("[comment] 需要 --token / -u -p / 环境变量 IQ_SSO_TOKEN 之一", file=sys.stderr)
+        return 5
+    if token:
+        c = IQClient(token)
+        c.profile = c.login()
+    else:
+        print("[comment] -u -p 需要验证码 OCR 依赖（rapidocr-onnxruntime），"
+              "无读图环境建议直接传 --token", file=sys.stderr)
+        return 5
+
+    text = a.text
+    if a.text_file:
+        with open(a.text_file, encoding="utf-8") as f:
+            text = f.read().strip()
+
+    EXIT_OK, EXIT_REJECT, EXIT_RECEIPT, EXIT_PRECHECK = 0, 2, 3, 5
+    try:
+        if a.action == "show":
+            if not a.record:
+                print("[comment] show 需要 --record", file=sys.stderr)
+                return EXIT_PRECHECK
+            lst = c.recordComments(a.record, allowOther=a.allow_other)
+            print("记录 %s 共 %d 条评论：" % (a.record, len(lst)))
+            for c_ in lst:
+                print("  [%s] %s：%.80s" % (c_.get("id"), c_.get("userName"), _commentText(c_)))
+            return EXIT_OK
+
+        if a.action == "post":
+            if not (a.record and text):
+                print("[comment] post 需要 --record 与 --text/--text-file", file=sys.stderr)
+                return EXIT_PRECHECK
+            if not a.yes:
+                print("[dry-run] 将发评论：记录=%s 正文=%.60s 回复=%s（加 --yes 执行）"
+                      % (a.record, text, a.reply_user_id))
+                return EXIT_OK
+            before = c.recordComments(a.record, allowOther=a.allow_other)
+            new = c.commentRecord(a.record, text, a.reply_user_id, a.reply_user_name)
+            after = c.recordComments(a.record, allowOther=a.allow_other)
+            newId = (new or {}).get("id") if isinstance(new, dict) else None
+            ok = bool(len(after) == len(before) + 1
+                      and (newId is None or _findComment(after, newId)))
+            print("[post] 回执：评论数 %d -> %d，新评论 id=%s，回执一致=%s"
+                  % (len(before), len(after), newId, ok))
+            return EXIT_OK if ok else EXIT_RECEIPT
+
+        if a.action == "del":
+            if not (a.record and a.comment_id):
+                print("[comment] del 需要 --record 与 --comment-id", file=sys.stderr)
+                return EXIT_PRECHECK
+            lst = c.recordComments(a.record, allowOther=a.allow_other)
+            target = _findComment(lst, a.comment_id)
+            if not target:
+                print("[del] 该记录下找不到评论 id=%s" % a.comment_id, file=sys.stderr)
+                return EXIT_PRECHECK
+            if not a.yes:
+                print("[dry-run] 将删除评论 [%s] %.60s（加 --yes 执行，删除不可撤销）"
+                      % (a.comment_id, _commentText(target)))
+                return EXIT_OK
+            c.delRecordComment(a.comment_id)
+            after = c.recordComments(a.record, allowOther=a.allow_other)
+            ok = len(after) == len(lst) - 1 and not _findComment(after, a.comment_id)
+            print("[del] 回执：评论数 %d -> %d，id 消失=%s，回执一致=%s"
+                  % (len(lst), len(after), not _findComment(after, a.comment_id), ok))
+            return EXIT_OK if ok else EXIT_RECEIPT
+
+        if a.action == "favours":
+            if not a.summary:
+                print("[comment] favours 需要 --summary", file=sys.stderr)
+                return EXIT_PRECHECK
+            favs = c.activityFavours(a.summary)
+            names = [f.get("userName") for f in favs if isinstance(f, dict)]
+            print("总结 %s 点赞 %d 人：%s" % (a.summary, len(names), "、".join(n for n in names if n)))
+            return EXIT_OK
+
+        if a.action == "activity-show":
+            if not a.summary:
+                print("[comment] activity-show 需要 --summary", file=sys.stderr)
+                return EXIT_PRECHECK
+            lst = c.activityComments(a.summary)
+            print("总结 %s 共 %d 条评论：" % (a.summary, len(lst)))
+            for c_ in lst:
+                print("  [%s] %s：%.80s" % (c_.get("id"), c_.get("userName"), _commentText(c_)))
+            return EXIT_OK
+
+        if a.action == "activity-post":
+            if not (a.summary and text):
+                print("[comment] activity-post 需要 --summary 与 --text/--text-file", file=sys.stderr)
+                return EXIT_PRECHECK
+            if not a.yes:
+                print("[dry-run] 将发活动评论：总结=%s 正文=%.60s 回复=%s（加 --yes 执行）"
+                      % (a.summary, text, a.reply_user_id))
+                return EXIT_OK
+            before = c.activityComments(a.summary)
+            c.commentActivity(a.summary, text, a.reply_user_id)
+            after = c.activityComments(a.summary)
+            ok = len(after) == len(before) + 1
+            print("[post] 回执：评论数 %d -> %d，回执一致=%s" % (len(before), len(after), ok))
+            return EXIT_OK if ok else EXIT_RECEIPT
+
+        if a.action == "activity-del":
+            if not (a.summary and a.comment_id):
+                print("[comment] activity-del 需要 --summary 与 --comment-id", file=sys.stderr)
+                return EXIT_PRECHECK
+            lst = c.activityComments(a.summary)
+            target = _findComment(lst, a.comment_id)
+            if not target:
+                print("[del] 该总结下找不到评论 id=%s" % a.comment_id, file=sys.stderr)
+                return EXIT_PRECHECK
+            if not a.yes:
+                print("[dry-run] 将删除评论 [%s] %.60s（加 --yes 执行，删除不可撤销）"
+                      % (a.comment_id, _commentText(target)))
+                return EXIT_OK
+            c.delActivityComment(a.comment_id)
+            after = c.activityComments(a.summary)
+            ok = len(after) == len(lst) - 1 and not _findComment(after, a.comment_id)
+            print("[del] 回执：评论数 %d -> %d，回执一致=%s" % (len(lst), len(after), ok))
+            return EXIT_OK if ok else EXIT_RECEIPT
+
+        if a.action == "like":
+            if not a.record:
+                print("[comment] like 需要 --record", file=sys.stderr)
+                return EXIT_PRECHECK
+            lst = c.recordFavours(a.record, allowOther=a.allow_other)
+            mine = str(c.userId)
+            has = any(str(x.get("userId")) == mine for x in lst)
+            want = not a.off
+            if not a.yes:
+                print("[dry-run] 将%s记录 %s 的点赞（当前%s，名单 %d 人）——加 --yes 执行"
+                      % ("点赞" if want else "取消", a.record,
+                         "已赞" if has else "未赞", len(lst)))
+                return EXIT_OK
+            c.favourRecord(a.record, like=want)
+            after = c.recordFavours(a.record, allowOther=a.allow_other)
+            now = any(str(x.get("userId")) == mine for x in after)
+            exp = 0 if has == want else (1 if want else -1)
+            ok = bool(now == want and len(after) - len(lst) == exp)
+            print("[like] 回执：名单 %d->%d，本人 %s->%s，回执一致=%s"
+                  % (len(lst), len(after), "已赞" if has else "未赞",
+                     "已赞" if now else "未赞", ok))
+            return EXIT_OK if ok else EXIT_RECEIPT
+
+        if a.action == "activity-like":
+            if not a.summary:
+                print("[comment] activity-like 需要 --summary", file=sys.stderr)
+                return EXIT_PRECHECK
+            lst = c.activityFavours(a.summary)
+            want = not a.off
+            if not a.yes:
+                print("[dry-run] 将%s活动总结 %s 的点赞（当前名单 %d 人）——加 --yes 执行"
+                      % ("点赞" if want else "取消", a.summary, len(lst)))
+                return EXIT_OK
+            c.favourActivity(a.summary, like=want)
+            after = c.activityFavours(a.summary)
+            exp = 1 if want else -1
+            ok = bool(len(after) - len(lst) == exp)
+            print("[like] 回执：名单 %d->%d，回执一致=%s" % (len(lst), len(after), ok))
+            return EXIT_OK if ok else EXIT_RECEIPT
+
+        if a.action == "activity-collect":
+            if not a.event:
+                print("[comment] activity-collect 需要 --event", file=sys.stderr)
+                return EXIT_PRECHECK
+            cur = str(c.activityInfo(a.event).get("isCollect"))
+            want = not a.off
+            want_s = "1" if want else "0"
+            if not a.yes:
+                print("[dry-run] 将%s活动 %s（当前 isCollect=%s）——加 --yes 执行"
+                      % ("收藏" if want else "取消收藏", a.event, cur))
+                return EXIT_OK
+            c.collectActivity(a.event, collect=want)
+            now = str(c.activityInfo(a.event).get("isCollect"))
+            ok = now == want_s
+            print("[collect] 回执：isCollect %s -> %s，回执一致=%s" % (cur, now, ok))
+            return EXIT_OK if ok else EXIT_RECEIPT
+
+        return EXIT_OK
+    except IQError as e:
+        msg = str(e)
+        if "session已过期" in msg or "登录失败" in msg:
+            print("[comment] token 失效：", msg, file=sys.stderr)
+            return 4
+        print("[comment] 服务端拒绝：", msg, file=sys.stderr)
+        return EXIT_REJECT
+
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(main())

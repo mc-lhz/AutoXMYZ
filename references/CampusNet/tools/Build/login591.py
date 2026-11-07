@@ -6,16 +6,30 @@
 """
 import argparse, json, os, sys, time
 
+# 默认指向本仓库的 XinYiWo 子树（references/XinYiWo）；IQ_SKILL 可覆盖
+_HERE = os.path.dirname(os.path.abspath(__file__))          # .../CampusNet/tools/Build
+_CAMPUS = os.path.dirname(os.path.dirname(_HERE))           # .../CampusNet
+_SKILL_ROOT = os.path.dirname(os.path.dirname(_CAMPUS))     # 仓库根（含 references/）
 SKILL = os.environ.get(
     "IQ_SKILL",
-    os.path.expanduser(r"~/.config/opencode/skills/591iqAutomatic"))
-sys.path.insert(0, SKILL)
-sys.path.insert(0, os.path.join(SKILL, "tools"))
+    os.path.join(_SKILL_ROOT, "references", "XinYiWo"))
+# 用「按路径加载」而不是 `from tools.Access...`：
+# 子树在聚合仓库内时，`tools` 顶层包名会被 CampusNet 的正规包抢占
+# （regular package 优先于 namespace package），跨子树 import 必失败。
+import importlib.util as _ilu  # noqa: E402
 
-from tools.Access.LoginToken import (          # noqa: E402
-    BASE, sha1, newSession, serverTime, fetchCaptcha,
-    ocrCaptcha, portalLogin,
-)
+_LT = os.path.join(SKILL, "tools", "Access", "LoginToken.py")
+_spec = _ilu.spec_from_file_location("iq_LoginToken", _LT)
+_mod = _ilu.module_from_spec(_spec)
+_spec.loader.exec_module(_mod)
+
+BASE = _mod.BASE
+sha1 = _mod.sha1
+newSession = _mod.newSession
+serverTime = _mod.serverTime
+fetchCaptcha = _mod.fetchCaptcha
+ocrCaptcha = _mod.ocrCaptcha
+portalLogin = _mod.portalLogin
 
 
 def main():

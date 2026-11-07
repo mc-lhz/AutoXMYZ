@@ -1,0 +1,122 @@
+"""HTTP 传输层：封装 591iq 网关请求（鉴权头 + request={"data":{...}}）。
+
+各业务 mixin 只依赖本模块提供的 _call / get / post / login / userId，
+不直接接触 urllib。
+"""
+import json
+import os
+import time
+import urllib.parse
+import urllib.request
+
+from Common.Logcat import Log
+
+BASE = "https://service.591iq.cn"
+
+# 内部诊断日志（stderr + WARNING，默认什么都不输出）。
+# 按契约走 Logcat：给 AI/用户看的结论仍然只在 stdout 用 print，
+# 这里只回答「刚才那次请求到底发了什么、回了什么、慢不慢」。
+# 看细节：环境变量 IQ_VERBOSE=1，或 setVerbose()。
+
+
+class IQError(Exception):
+    pass
+
+
+def unwrapEnvelope(out, path):
+    """把响应信封拆成业务数据；错误码非 0 一律抛 IQError。
+
+    网关存在**两种**信封，只认顶层 code 会把失败当成功（D17）：
+    ① `{code,msg,data}` —— 绝大多数端点
+    ② `{meta:{code,msg}, …}` —— 少数端点（如家长评语提交），顶层根本没有 code
+    判别方式：顶层 `meta` 是 dict 且含 `code` 时以它为准，否则用顶层字段。
+    拆包规则两者一致：有 `data` 解一层，否则整份返回
+    （`loginBySSOToken` 的字段是平铺在顶层的，解了反而拿不到）。
+    """
+    if not isinstance(out, dict):
+        return out                              # 裸数组/标量，原样交给调用方
+    meta = out.get("meta")
+    if isinstance(meta, dict) and "code" in meta:
+        code, msg = meta.get("code"), meta.get("msg")
+    else:
+        code, msg = out.get("code"), out.get("msg")
+    if code not in (0, "0", None):
+        if str(code) == "9000":
+            raise IQError("session已过期, 需要重新用 ssoToken 调 loginBySSOToken")
+        raise IQError(f"{path} -> code={code} msg={msg}")
+    return out.get("data", out)
+
+
+class Http:
+    def __init__(self, ssoToken: str):
+        self.ssoToken = ssoToken
+        self.profile = None
+
+    def _call(self, path, data=None, method=None):
+        payload = urllib.parse.urlencode(
+            {"request": json.dumps({"data": data or {}}, ensure_ascii=False)})
+        url = BASE + path
+        if method is None:
+            method = "POST" if data is not None else "GET"
+        if method == "GET":
+            url = url + "?" + payload
+            body = None
+        else:
+            body = payload.encode("utf-8")
+        req = urllib.request.Request(url, data=body, method=method)
+        req.add_header("AccessToken", self.ssoToken)
+        req.add_header("clientos", "pc")
+        if body is not None:
+            req.add_header("Content-Type", "application/x-www-form-urlencoded")
+        Log.d("HTTP", "-> %s %s keys=%s" % (method, path,
+                                            sorted((data or {}).keys())))
+        t0 = time.time()
+        try:
+            with urllib.request.urlopen(req, timeout=30) as r:
+                raw = r.read().decode("utf-8")
+        except Exception as e:                       # noqa: BLE001
+            Log.exc("HTTP", "请求失败 %s %s after %.0fms: %s"
+                    % (method, path, (time.time() - t0) * 1000,
+                       type(e).__name__))
+            raise
+        ms = (time.time() - t0) * 1000
+        try:
+            out = json.loads(raw)
+        except ValueError:
+            Log.w("HTTP", "响应不是 JSON %s (%.0fms) len=%d 前 80 字=%r"
+                  % (path, ms, len(raw), raw[:80]))
+            raise
+        code = out.get("code") if isinstance(out, dict) else None
+        meta = out.get("meta") if isinstance(out, dict) else None
+        if isinstance(meta, dict) and "code" in meta:
+            code = meta.get("code")
+        shape = sorted(out.keys()) if isinstance(out, dict) else type(out).__name__
+        Log.d("HTTP", "<- %s %s %.0fms code=%s 信封=%s"
+              % (path, "OK" if code in (0, "0", None) else "FAIL", ms, code,
+                 shape))
+        return unwrapEnvelope(out, path)
+
+    def get(self, path, data=None):
+        return self._call(path, data, method="GET")
+
+    def post(self, path, data=None):
+        return self._call(path, data, method="POST")
+
+    def login(self):
+        d = self._call("/account/loginBySSOToken", {"ssoToken": self.ssoToken})
+        self.profile = d
+        return d
+
+    def logout(self):
+        """注销当前会话（**写操作**：服务端作废该 ssoToken）。
+
+        会话卫生用途——任务做完主动登出，缩小凭据存活窗口；
+        调用后本客户端所有后续请求都会得到 `9000 session已过期`。
+        前端契约（bundle）：`/account/logout` POST、空载荷。
+        """
+        Log.d("Http", "logout ssoToken 尾 6 位 ...%s" % self.ssoToken[-6:])
+        return self._call("/account/logout", {}, method="POST")
+
+    @property
+    def userId(self):
+        return str(self.profile["userId"])
