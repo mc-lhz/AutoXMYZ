@@ -1,0 +1,16 @@
+# 产物与临时文件（会话/凭据仍靠「仓库外路径隔离」，此文件只挡产物）
+__pycache__/
+*.pyc
+*.pyo
+jcaptcha*
+*.vision.png
+vl_*
+*.state.json
+591iq_*.json
+*ApiReadOnlyReport.json
+*ApiDump.txt
+*.xlsx
+dist/
+build_data/
+.idea/
+.trae/

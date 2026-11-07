@@ -74,10 +74,24 @@ def excluded(rel):
 
 
 def collect():
-    """返回 [(仓库相对路径, 绝对路径)]，按路径排序。"""
+    """返回 [(相对路径, 绝对路径)]，按路径排序。
+
+    优先 git ls-files；在「安装后的技能目录」（无 .git）里退化为目录树遍历，
+    排除规则完全一致（SKIP_DIR + EXCLUDE_GLOBS），保证解包即用。
+    """
     code, out = run_git("ls-files")
-    if code != 0:
-        raise SystemExit("[pack] 不是 git 仓库或 git 不可用，无法按git ls-files 取文件")
+    if code != 0 or not (out or "").strip():   # 安装目录在别的 git 仓库里时会是「成功但空」
+        got = []
+        skip = (".git", "__pycache__", ".github")
+        for dp, dns, fs in os.walk(ROOT):
+            dns[:] = [d for d in dns if d not in skip]
+            for f in fs:
+                p = os.path.join(dp, f)
+                rel = os.path.relpath(p, ROOT).replace(os.sep, "/")
+                if excluded(rel):
+                    continue
+                got.append((rel, p))
+        return sorted(got)
     got = []
     for rel in out.split("\n"):
         rel = rel.strip().replace("\\", "/")

@@ -1,206 +1,109 @@
-# AGENTS.md
+# AutoXMYZ 聚合技能 — 开发者契约
 
-**双源站**工具集：厦门一中校内系统（xmyz.xmedu.cn，只读）+ 学生社区
-（xmyzstudent.com，功能完备）。纯 HTTP，无需浏览器。
+三站聚合：**CampusNet**（xmyz.xmedu.cn，校内系统）、**XmyzStudent**（xmyzstudent.com，学社）、
+**XinYiWo**（www.591iq.cn，新壹我/591iq）。三站同一组学号密码，数据互不互通。
 
-## 架构
-
-多源站聚合：**每源站 = 一个门面 + 一套传输/会话 + 若干业务域目录**。
-未来站点（心意我 / hfs / 校园网）按同模式加目录 + 门面注册。
+## 结构（子技能分区，非物理合并）
 
 ```
+SKILL.md                    聚合入口：只写索引表 + 路径契约（懒加载，只读命中的 SUBSKILL）
+AGENTS.md                   本文件：跨站点规则
+README.md / VERSION / .gitignore
 tools/
-  XMYZClient.py                  门面①：xmyz.xmedu.cn，纯只读（_guard 强制）
-  endpoint_kind.py               xmyz 端点读写分类的唯一权威判定
-  Access/HttpTransport.py        xmyz 传输层：_call / get / post / paged / login / _bindUser
-  Access/LoginSession.py         xmyz 登录四种方式：password / jsessionid / vision / check
-  StudentBase/ProfileDict.py     身份、字典、学期、班级、网络磁盘
-  LifeOffice/StudyMessage.py     成绩、成绩单、成长记录、作业、短信、通知、附件
-  QualityCenter/QualityRead.py   综合素质评价（quality 域，20 个读取方法）
-  CommunityCenter/VolunteerRead.py  社团（community）与志愿服务（volunteer）
-  ExamCenter/ExamPractice.py     会考练习（信息技术会考）与在线考试
-  SelectSubjectCenter/SelectSubject.py  选科 3+1+2（m2 独有入口：状态/提交/确认/PDF/签名）
-  StudentCenter/                 学生向零引用端点收口（43 法：综评/考勤/宿量/借出/
-                                 成绩分析/家长变体/学生照片等，2026-10-25 终检）
-  ElectiveCenter/                选课系统（课程/结果/活动记录/考勤，59 方法）
-  ScheduleCenter/                个人日程（日历网格）与分类消息
-  PsychCenter/                   心理咨询预约
-  WorkCardCenter/                作业打卡
-  VoteCenter/                    投票
-  EvaluationCenter/              教师评测反馈 + 校本课程评测
-  CommunityCenter/CommunityExtra.py  社团考试成绩查看/报名/出勤/课程下拉
-  CommunityCenter/VolunteerNew.py    志愿者(新)：报名/签到/调查/AIMUNC/美辩
-  LifeOffice/WorkSubmit.py       作业内容/附件提交（写）
-  StudentHubClient.py            门面②：学社 xmyzstudent.com，功能完备（含写）
-  StudentHub/
-    HubTransport.py              学社传输层：Bearer、信封解包、限速、upload、WS 快照
-    HubSession.py                学社登录四种方式：campus(+vision 验证码) / normal / sms / token
-    HubEndpoints.py              学社端点注册表（284 REST + 2 WS，事实唯一来源）
-    AccountMixin.py              auth / user / sms / permissions
-    PortalMixin.py               横幅 / 年级绑定 / 文件上传 / 音乐 / QQ音乐
-    MessageMixin.py              站内消息（收件箱 + 管理端群发/模板）
-    TallyMixin.py                实时唱票（含 WS 快照订阅）
-    CampaignMixin.py             投票征集活动（投稿 / 投票 / 后台审核）
-    TicketMixin.py               电子票务（活动 / 抢票 / 核销 / 审核）
-    MuseumMixin.py               校园博物馆（事件 / 区块 / 标签 / 瞬间审核）
-    RatingMixin.py               评分社区（浏览 / 投稿 / 评分 / 评论 / 后台 74 端点）
-    VoicesMixin.py               声音问答（提问 / 回答 / 举报 / 后台治理）
-    AdmissionMixin.py            纳新/准入（分组/成员/豁免/扫码 + 用户验证，2026-10 新增）
-    CampusMixin.py               校区 / 楼宇 / 时段 + 管理端用户检索
-    DebateMixin.py               辩论场管理（含 WS）
-  TestCases/TestApiReadOnly.py   xmyz 只读 35 项探测，可重复运行
-  TestCases/TestContract.py      仓库契约与能力红线审计（离线，无网络无凭据）
-  TestCases/TestHub.py           学社契约审计（离线：注册表/门面/传输 mock/文档一致）
-  Common/Logcat.py               彩色分等级日志（内部诊断；单例 `Log`）
+  Login.py                  统一登录编排（子进程调用，零跨子树 import）
+  TestCases/TestAggregate.py 聚合契约
+references/
+  CampusNet/{SUBSKILL.md, AGENTS.md, tools/, reference/}
+  XmyzStudent/{SUBSKILL.md, AGENTS.md, tools/, reference/}
+  XinYiWo/{SUBSKILL.md, AGENTS.md, MEMORY.md, CHANGELOG.md, README.md, VERSION, tools/, reference/}
 ```
 
-- `reference/api.md` — xmyz 端点清单（本仓库 xmyz 侧唯一参考文档）
-- `reference/hub-api.md` — 学社端点清单（由 `Build/gen_hub_api_md.py` 从注册表派生）
-- `SKILL.md` — skill 定义
-- 每个 `.py` 都有同名 `.md`（门面 `XMYZClient.py` 豁免）
-- 每个业务目录有 `__init__.py`
+**为什么分区而不是合并 `tools/`**：三边都用裸包名导入（`Access`/`Common`/`StudentBase`/
+`TestCases` 同名）。同一 `sys.path` 下 `tools` 会解析到唯一目录（且 regular package 优先于
+namespace package）——物理合并必然互相覆盖、双 `Log` 单例、异常类错位。分区 + 各自以
+子树根为 cwd/sys.path 运行是唯一可靠解。
 
-## 红线
+## 路径契约
 
-**两套能力模型，不要混：**
+- 子技能内部相对路径以 `references/<子技能>/` 为基准（文档中 `tools/...` 即该子树内）。
+- 从聚合根执行：写完整前缀 `references/<子技能>/tools/...`。
+- 根 `SKILL.md` 的 `<system-reminder>` 是唯一权威；新增子技能时同步更新索引与契约。
 
-1. **xmyz（校内系统）读写均可用（2026-10-24 政策修订）。** 早年 `_guard` 强制拦截已解除，
-   `endpoint_kind.kind()` 仅作文档/统计口径：
+## 认证拓扑（单一凭据）
 
-- 判定逻辑**只有一份**，在 `tools/endpoint_kind.py::is_write`，已用全量 2606 端点校验
-  （1176 只读全放行 / 1430 写端点全拦截）。写判定除前缀表外还有
-  **后缀通则**（`WRITE_SUFFIX`：*Complete/*Approval/*Save/*Create/*Update——
-  新版 m2 上百个工作流动作靠它归位，逐个枚举必漏）
-- `_guard` 只做**转发**，不得在传输层维护第二套名单 ——
-  曾经在 `_guard` 里另写白名单，结果误拦 230/360 个只读端点，
-  同时把 `toDraft`/`signAll`/`setRead`/`resend` 这些写动作放行了（见「已踩过的坑」第 3 条）
-- 同名两义按 namespace 分流（`attachment!send` 读 / `short-message-detail!send` 写），
-  例外清单也写在 `endpoint_kind.py`，不散落各处
-- `_call` 是唯一出口，**不得新增绕过 `_guard` 的调用路径**
+```
+学号+密码
+ ├─ CampusNet：门户直登（自有验证码）→ JSESSIONID（%LOCALAPPDATA%\AutoXMYZ\session.json）
+ ├─ XinYiWo ：同一门户，用该 JSESSIONID 换发 ssoToken（不需要第二次验证码）
+ └─ XmyzStudent：客户端只把同一凭据+学社自己的验证码发给学社；
+                 学社服务端**服务端侧回调 CampusNet 校验**（不共享会话，只共享凭据）
+```
 
-2. **学社功能完备（含写）。** xmyzstudent.com 是学生自建平台，写操作是需求本身：
-- **不设 _guard**；`HubEndpoints.is_write(path, method)` 只是文档标注（语义与 xmyz 相反）
-- 删除类方法名显式含 delete；批量删除调用前自查 id 列表
-- 端点事实只有一份：`HubEndpoints.py`；`reference/hub-api.md` 与各 Mixin `.md`
-  全部由 `Build/gen_hub_api_md.py` 派生，**改注册表不改文档 = TestHub 报漂移**
+- `tools/Login.py` 统一编排；每步子进程 `cwd=对应子树根`。
+- 会话全部仓库外：`session.json` / `hub_session.json` / `iq_token.json`。
+- 安全提示：学社登录会把密码经学社服务器转发 CampusNet（站点设计），
+  不可信网络下勿用学社登录态。
 
-新增能力时：先判断属于哪个源站。xmyz 与学社读写都可加；
-**写纪律**：只写本人数据、可逆优先（create→delete 闭环验证）、
-不碰他人密码（`resetPassword` 不封装）、不碰他人审批流、删除类先查 id。
+## 红线（按子技能分治，不跨站统一）
+
+- **CampusNet**：只写本人数据、可逆优先（create→verify→destroy）、不封装 `resetPassword`、
+  不碰他人审批流；服务端权限是最终边界。
+- **XmyzStudent**：自有平台功能完备；删除类方法名显式 `delete`，批量先自查 id；
+  管理端点需 `*.manage` 权限（服务端 403 属预期）。
+- **XinYiWo**：客户端闸门 + `--yes` + 回执校验；`records(type_)` 白名单；
+  `queryRecord` 归属校验；默认脱敏；**不人员枚举**（已整体删除，不得复活）。
+- 共性：未成年人个人信息不入库/不外传；入库文档禁止真实姓名与真实 token。
 
 ## 开发契约
 
-- 命名：目录大驼峰、模块文件大驼峰、类大驼峰、方法小驼峰、常量 UPPER_SNAKE
-- **文件名不得重复目录名**；**目录名禁止与标准库同名**（`types`/`json`/`code`…）
-- 每业务一个目录 + 每个 py 一个同名 `.md`；新增业务域 = 新目录 + mixin + md + 门面注册
-- **日志分工写死**：结论一律 `print` 走 stdout；内部诊断一律 `from Common.Logcat import Log` 走 stderr
-  统一用单例 `Log`，不要在业务模块再实例化
-  ⚠️ DEBUG 日志含凭据与个人信息，**不得提交进仓库**
-- `Http` 必须留在 `XMYZClient` 继承链末位（基类）
-- 对外 API 只增不改；改方法名必须同步门面、测试、SKILL.md、api.md
-- **新功能一律先在系统临时目录原型化**，确认要长期维护才移入 `tools/`；
-  一次性探针**用完即删**（含凭据）
-- 探针脚本里写死的账号密码**只进环境变量不进 argv**，用完 `Remove-Item Env:` 清掉
-- **代码与文档不得绑定特定 AI 工具 / IDE**，不写死工具私有路径
-- **禁止用正则批量替换目录名**——会误伤 API 路径与字段名
-- **argparse 的 help 字符串里不能留裸 `%`**：`--help` 会对 help 再做一次 `%` 格式化，
-  `ValueError: unsupported format character` 就是这么来的
-- ⚠️ **改这些文件不要用 PowerShell here-string**：反引号会被当转义符吃掉。
-  要批量改就写一个 Python 补丁脚本再执行
+- 子技能各自遵守其 `AGENTS.md`（目录/命名/mixin/同名 md/门面组合等）。
+- **禁止跨子树 import**。需要联动时用子进程或按路径 `importlib` 加载（参考
+  CampusNet `Build/login591.py` 的处理：`from tools.Access...` 会被 CampusNet 的正规包抢占）。
+- 新增站点 = 新 `references/<Name>/` 子树（SUBSKILL + tools + reference + 可选 AGENTS）
+  + 根索引/契约/`Login.py` 子命令 + `TestAggregate` 校验项。
+- 各子树的契约/测试保持独立：CampusNet `TestContract`(9)+`TestApiReadOnly`(35)+
+  `TestMethodSmoke`；XmyzStudent `TestHub`(15)+`TestHubSmoke`；XinYiWo `TestContract`(17)
+  +`TestApiReadOnly`(52/53)+`TestRecordRead`+`TestWriteRehearsal`+`ApiCoverageAudit`。
 
-## 已踩过的坑（改代码前先读）
-
-1. **`loggedIn` 不能判会话**。未登录时 `status.action` 返回 `{"loggedIn":false}`，
-   登录后该字段**直接消失**，`get()` 返回 `None`。`== False` 判会误报未登录，
-   `== True` 判则永远失败。判据是 profile 里有无 `loginName`/`id`。
-
-2. **`Http.__init__` 默认路径必须自己读会话文件**。曾写成 `elif cookie:`，
-   于是无参构造（门面最常见用法）**静默以未登录身份运行**；
-   而未登录时多数只读端点照样返回 200 —— 测试「全绿」而一条真实数据都没取到。
-   排查假阳性时先确认 `menuTree()` 非空、`status()` 有 `loginName`。
-
-3. **端点分类不能靠正则硬拼**。旧实现每分支后接 `\.action$`，
-   `approve` 只匹配到 `approvedComplete` 前 7 字母就接不上，**漏判 88 个**写端点。
-   正确做法见 `endpoint_kind.py`：先取动作名，再做词元判定。
-
-4. **只读探测的判定不能只认信封**。本系统有裸数组 / 裸对象响应
-   （`dict!getTree`、`grade!loadTree`、`recipient!statInfo`、`community!loadTree`），
-   只认 `{"success":...}` 会误报 5 个 FAIL。**解析出 JSON 即 ALIVE，空数组也算。**
-
-5. **`send` 同名两义，必须按 namespace 分流**。`system/attachment!send` 是**下载**（读）；
-   `message/short-message-detail!send` 是**真发短信**（写）。
-   只按动作名判会把只读端点拦死、或把写端点放行 —— 两边都是事故。
-
-6. **`.pyc` 会把编译期常量还原成明文**。`scan_sensitive.py` 把学号/密码/姓名
-   拆成字符元组 `_PARTS`，源码里确实没有连续明文；但 `py_compile` 之后，
-   字节码里那几个元组就是**重新拼好的明文串**。而扫描器当时只读文本、
-   且主动 `skip __pycache__` —— 泄漏从它眼皮底下走了过去。
-   现在的处理：扫描器同时扫二进制、不跳过 `__pycache__`，且
-   `precommit_check.py` 的闸①直接判 `__pycache__`/`*.pyc` 存在为**失败**。
-   **拆字符串不是防泄漏手段，别把它当保险。**
-
-7. **两层覆盖没有等价性测试，缺口靠用户点破**（2026-10-24 考试域事件）。
-   注册表层（流水线，持续增长到 2625）与具名方法层（手写 mixin，初期范围冻结）
-   长期脱节：考试域 10 个端点在册、客户端却只有泛化调用，直到用户问
-   「这个没在技能吗」才暴露。对策：发现/新增功能域时**立即建域**
-   （目录 + mixin + md + 门面注册），不要用「泛化调用能跑」当借口；
-   新菜单模块进注册表时，同步在对应域 md 里登记。
-
-7. **入库前检查器会污染它自己检查的东西**。`precommit_check.py` 的契约审计要
-   import 模块，若不设 `PYTHONDONTWRITEBYTECODE=1`，跑一次就长出 `__pycache__`，
-   下一次跑闸①必然失败 —— 检查器永远在报上一次运行留下的产物。
-   两道保险：子进程一律 `-B` + 环境变量；闸①排在**最后**做兜底扫。
-
-## 常用命令
+## 测试矩阵
 
 ```bash
-# xmyz 校内系统（只读）
-python tools/Access/LoginSession.py check                                   # 无凭据探测
-python tools/Access/LoginSession.py vision -u <学号> -p <密码> --code ab12  # 登录（有读图能力）
-python tools/Access/LoginSession.py password -u <学号> -p <密码>            # 登录（OCR）
-python tools/XMYZClient.py --health                                          # 会话自检
-python tools/TestCases/TestApiReadOnly.py                                    # 只读 35 项
+# 各子树（在各自目录下跑）
+python tools/TestCases/TestContract.py      # CampusNet 9 项
+python tools/TestCases/TestHub.py           # XmyzStudent 15 项
+python tools/TestCases/TestContract.py      # XinYiWo 17 项（--strict 可阻断）
 
-# 学社（功能完备）
-python tools/StudentHub/HubSession.py captcha                                # 取验证码图
-python tools/StudentHub/HubSession.py campus -a <账号> -p <密码> --code ab12 # 校园网账号登录
-python tools/StudentHub/HubSession.py token --token <localStorage.token>     # 浏览器复制 token
-python tools/StudentHubClient.py --health                                    # 会话自检
-
-# 审计（全离线）
-python tools/TestCases/TestContract.py                                       # 仓库契约
-python tools/TestCases/TestHub.py                                            # 学社契约
+# 聚合层（根）
+python tools/TestCases/TestAggregate.py     # 三子树存在/无游离 SKILL.md/路由关键词/子树契约/体积预算
 ```
 
-## 发布前必跑
+线上冒烟（需会话）：`TestMethodSmoke`（CampusNet）、`TestHubSmoke`（XmyzStudent）。
+线上测试不放 CI（避免学生账号进 secrets）。
 
-```bash
-python tools/TestCases/TestHub.py        # 学社契约（含文档一致性）
-python tools/Build/precommit_check.py    # 四道闸：产物 / 敏感串 / 会话模板 / 契约审计
-```
+## 发布
 
-外加 `reference/` 未超 150 KB（api.md + hub-api.md 合计）。
+- 统一发版：根 `.github/workflows/release.yml` 打单包 `AutoXMYZ.zip`
+  （根 SKILL/AGENTS/README/VERSION + `references/**` + `tools/Login.py`）。
+- XinYiWo 不再单独发 `591iqAutomatic.zip`（其子树内 `tools/Release/PackSkill.py`
+  仍可独立打包自检，但不再挂 Release）。
+- CI 用内存编译（**不用 `compileall`**，避免 `__pycache__`），
+  `PYTHONDONTWRITEBYTECODE=1`，ubuntu+windows，Python 3.11（声明 3.9+）。
 
-⚠️ **本仓库内不要用 `py_compile` / `compileall` 做语法校验** —— 它们会写出
-`__pycache__`，正是闸①要拦的东西（见「已踩过的坑」第 6 条）。用内存编译：
+## 已踩过的坑
 
-```bash
-python -c "import sys; compile(open(sys.argv[1],encoding='utf-8').read(), sys.argv[1], 'exec')" <file>
-```
-
-## 依赖
-
-requests、rapidocr-onnxruntime（验证码 OCR）、numpy + Pillow（预处理）。
+1. **跨子树 `tools` 包名抢占**：`from tools.Access...` 在聚合仓库内解析到 CampusNet 的
+   正规包（regular > namespace），XinYiWo 的模块找不到。解法：子进程或按路径 importlib。
+2. **入口改名连带**：591iq 的 TestContract/PackSkill/README 都硬编码 `SKILL.md`，
+   改 `SUBSKILL.md` 后必须同步（含打包必备清单）。
+3. **reference 预算分区**：三子树各自 ≤150KB；合并计算会超限。
+4. **触发词重叠**：「综合素质评价/成长记录/待办」在 CampusNet 与 XinYiWo 都出现——
+   根 description 必须点名站点与系统边界，并声明数据不互通。
+5. **git ls-files 作用域**：在子树内运行是 cwd 相对（无前缀），但文件必须先 `git add`
+   才能被 PackSkill 收集。
+6. 各子树的历史坑见其 `AGENTS.md`（CampusNet 11 条、XmyzStudent 5 条、XinYiWo MEMORY.md）。
 
 ## 安全纪律
 
-- 提交前脱敏：不得包含密码 / 会话 id / 姓名 / 学号 / 班级 / userId
-- 入库文档禁止出现任何真实姓名（含本人与他人），一律写「某学生」
-- `reference/.session.json` 是**占位模板**，没配 .gitignore 也不会漏 ——
-  真实会话默认写在仓库外的用户目录（`%LOCALAPPDATA%\AutoXMYZ\` / `~/.local/share/AutoXMYZ/`），
-  由 `HttpTransport.SESSION_FILE` 决定，可用 `AUTOMXYZ_SESSION` 或 `--out` 覆盖
-- 学社侧同理：`hub_session.json` / `hub_captcha_pending.json` 都在仓库外同目录，
-  由 `HubTransport.SESSION_FILE` / `CAPTCHA_PENDING_FILE` 决定，`AUTOMXYZ_HUB_SESSION` 可覆盖
-- 学社文档/示例不得出现真实 token（32+ hex 由 TestHub 安全闸拦截）、手机号
-- 每加一条合规红线，必须配一条能证明它会红的**反向用例**
-  （恒 PASS 的检查是装饰品）；反向用例不得真删文件，只 monkeypatch 或改临时副本，`finally` 还原
+- 会话/token/导出/验证码一律不入库；`.gitignore` 只挡产物（真正隔离靠仓库外路径）。
+- `reference/api-privileged.md`（XinYiWo）继续不入库、不进包。
+- 探测未知端点用 `id=-1`；短延迟串行；遇 4xx/429/502 停手并慢速重探。

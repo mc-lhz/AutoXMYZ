@@ -1,0 +1,55 @@
+name: ci
+on:
+  push:
+    branches: [main, "refactor/**"]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      strict:
+        description: "契约严格模式（XinYiWo --strict）"
+        required: false
+        default: "false"
+
+jobs:
+  contract:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: 内存编译（不产生 __pycache__）
+        shell: bash
+        run: |
+          export PYTHONDONTWRITEBYTECODE=1
+          python - <<'PY'
+          import pathlib, sys
+          bad = []
+          for p in pathlib.Path(".").rglob("*.py"):
+              if "__pycache__" in p.parts: continue
+              try: compile(p.read_text(encoding="utf-8"), str(p), "exec")
+              except SyntaxError as e: bad.append((str(p), e))
+          print("语法检查:", "OK" if not bad else bad[:5])
+          sys.exit(1 if bad else 0)
+          PY
+      - name: CampusNet 契约（9 项）
+        env: { PYTHONDONTWRITEBYTECODE: "1" }
+        run: python -B tools/TestCases/TestContract.py
+        working-directory: references/CampusNet
+      - name: XmyzStudent 契约（15 项）
+        env: { PYTHONDONTWRITEBYTECODE: "1" }
+        run: python -B tools/TestCases/TestHub.py
+        working-directory: references/XmyzStudent
+      - name: XinYiWo 契约（17 项，FAIL=0）
+        env: { PYTHONDONTWRITEBYTECODE: "1" }
+        run: python -X utf8 -B tools/TestCases/TestContract.py
+        working-directory: references/XinYiWo
+      - name: 聚合契约
+        env: { PYTHONDONTWRITEBYTECODE: "1" }
+        run: python -B tools/TestCases/TestAggregate.py
+      - name: 工作区未污染
+        run: git status --porcelain --untracked-files=no
