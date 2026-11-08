@@ -15,7 +15,7 @@ description: 厦门一中三站聚合工具集（同一组学号密码）：Camp
 |---|---|---|
 | [`CampusNet`](references/CampusNet/SUBSKILL.md) | `xmyz.xmedu.cn` | 校内系统（3 前端共用 JSESSIONID）：成绩/成绩单、成长记录、综评写实记录、社团志愿、短信、待办、会考练习、选科、选课、日程、心理预约、打卡、投票、评测、考勤 |
 | [`XmyzStudent`](references/XmyzStudent/SUBSKILL.md) | `xmyzstudent.com` | 学社（学生自建平台，功能完备含写）：实时唱票(+WS)、票务、评分社区、声音问答、校园博物馆、辩论场、纳新、站内消息 |
-| [`XinYiWo`](references/XinYiWo/SUBSKILL.md) | `www.591iq.cn` | 新壹我（天蛙）综评系统：写实记录读写/发布/删除、活动总结、评论互动、成长报告与自我总结、待办、荣誉、xlsx 导出 |
+| [`XinYiWo`](references/XinYiWo/SUBSKILL.md) | `www.591iq.cn` | 新壹我综评系统：写实记录读写/发布/删除、活动总结、评论互动、成长报告与自我总结、待办、荣誉、xlsx 导出 |
 
 <system-reminder>
 本技能由「子技能分区」构成：每个子技能位于 `references/<子技能名>/`，各自保留完整的

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-天蛙综合素质评价系统（www.591iq.cn）自动化工具集。纯 HTTP，读操作不需要浏览器。
+新壹我综合素质评价系统（www.591iq.cn）自动化工具集。纯 HTTP，读操作不需要浏览器。
 
 ## 架构
 
@@ -35,7 +35,6 @@ tools/
   TestCases/TestRecordRead.py     13 项
   TestCases/TestContract.py       仓库契约与卫生审计（离线，无网络无凭据）
   TestCases/ApiCoverageAudit.py   端点覆盖审计（bundle 清单 vs 封装集，同族缺口报告）
-  TestCases/AiProxyTest.py        AI 网关本地流式代理（实验脚本；token 走 argv，不进 CLI 名单）
   Release/PackSkill.py            技能包打包（591iqAutomatic.zip，根目录结构）
   Common/Logcat.py                彩色分等级日志（内部诊断用；默认 stderr+WARNING，单例 `Log`）
   Feedback/FeedbackClient.py      反馈接口投递（独立服务，非 591iq 网关，不注册门面）
@@ -248,8 +247,7 @@ requests、rapidocr-onnxruntime（验证码 OCR）、numpy + Pillow（预处理�
 ### 未发布（v1.1 之后，2026-10-25）
 
 自 v1.1 起累计 7 个提交、14 个文件、+498/−11。**纯增量、无破坏性变更。**
-⚠️ 版本漂移：`VERSION` 仍为 `v1.1`，发布前需 bump 并打 tag
-（否则契约的「VERSION 与最近 tag 一致」检查只能给 WARN）。
+v1.2 已发布（tag `v1.2`），`VERSION` 已对齐；契约的「VERSION 与最近 tag 一致」检查转 PASS。
 
 #### 新增
 
@@ -272,10 +270,8 @@ requests、rapidocr-onnxruntime（验证码 OCR）、numpy + Pillow（预处理�
 
 #### 实验
 
-- **`TestCases/AiProxyTest.py`（+ 同名 `.md`）** —— AI 网关本地流式代理：
-  Flask 把客户端请求原样转发到上游 `service.591iq.cn` 并把响应按 SSE 流回
-  （不做缓冲/解析，避免「全部算完再一次性返回」）；token 走 argv、**不列入 CLI 名单**、
-  不参与 CI；需额外安装 `flask`。
+- **`TestCases/AiProxyTest.py`（已于 v1.2 移除）** —— AI 网关本地流式代理原型
+  （Flask/SSE 转发）。属一次性实验，冻结为孤儿脚本后删除，不入包、不进 CI。
 - **AGENTS「兄弟清扫」纪律** —— 从某个 chunk 建模块时，必须把该 chunk 内全部
   `"/xxx"` 路径字面量列出来逐条分诊（封装 / 留档 / 排除），再用覆盖审计复跑。
   教训直接来自本区间：评论四口取了，同 chunk 的 `favour`/`collect` 就被挑剩了。
@@ -284,7 +280,7 @@ requests、rapidocr-onnxruntime（验证码 OCR）、numpy + Pillow（预处理�
 #### 文档
 
 - CHANGELOG 本段即 v1.1 之后累计变更的对外汇总；MEMORY 同步复盘记录；
-  AGENTS 结构清单补 `ApiCoverageAudit.py`、`AiProxyTest.py` 两项说明。
+  AGENTS 结构清单补 `ApiCoverageAudit.py` 一项说明。
 
 ---
 
