@@ -7,21 +7,46 @@
 
 ---
 
-## 未发布
+## 未发布（v1.1 之后，2026-10-25）
+
+自 v1.1 起累计 7 个提交、14 个文件、+498/−11。**纯增量、无破坏性变更。**
+⚠️ 版本漂移：`VERSION` 仍为 `v1.1`，发布前需 bump 并打 tag
+（否则契约的「VERSION 与最近 tag 一致」检查只能给 WARN）。
 
 ### 新增
 
-- **互动补全：点赞与收藏** —— 记录点赞/取消（`/record/favour`）、活动总结点赞/取消
-  （`/evaluateActivity/favour`）、活动收藏/取消（`/evaluateActivity/collect`）三组开关，
-  以及记录点赞名单读取；CLI 增 `like` / `activity-like` / `activity-collect`
-  （默认只预览、`--yes` 才写、回读回执）。
-- **`TestCases/ApiCoverageAudit.py`** —— 端点覆盖审计：bundle 端点清单 vs skill 封装集，
-  输出「同族缺口」报告（某段已有封装却仍有未覆盖兄弟端点）。把 2026-10-25「点赞漏检」
-  这类盲区变成可复跑检查；配套在 AGENTS 立下「兄弟清扫」纪律。
-- **同族漏检清单补齐（+5 读口）** —— `messages()` / `dynamicMessages()`（消息列表与
-  动态流，注意两套分页键不一致）、`checkRecordExist()`（编辑页查重回填）、
-  `receivedComments()` / `receivedFavours()`（个人主页「收到的评论 / 赞」，
-  行内 userInfo 已白名单收敛）。
+- **互动补全：点赞与收藏（三组开关）** —— 新增 `recordFavours(recordId)`（点赞名单）、
+  `favourRecord(recordId, like=True)`（记录赞/取消）、`favourActivity(summaryId, like=True)`
+  （活动总结赞/取消）、`collectActivity(eventId, collect=True)`（活动收藏/取消）；
+  CLI 新增 `like` / `activity-like` / `activity-collect`——默认只预览、`--yes` 才写、
+  写后回读回执。
+- **同族漏检清单补齐（+5 读口）** ——
+  - `messages(offset, limit)` 消息列表（分页键是**裸 `offset`/`limit`**）；
+  - `dynamicMessages(offset, limit)` 动态消息（分页键是 **`pageRowBounds`**——
+    系统内三套分页键并存，不能互相套用）；
+  - `checkRecordExist(recordType, gradeAliasId)` 编辑页查重/回填；
+  - `receivedComments(userId=None, offset, limit)` / `receivedFavours(...)`
+    个人主页「收到的评论 / 赞」（行内 `userInfo` 已白名单收敛）。
+- **端点覆盖审计 `TestCases/ApiCoverageAudit.py`** —— bundle 端点清单 vs 实时扫描
+  `tools/` 得到的封装集，输出「同族缺口」报告（某段已有封装却仍有未覆盖的兄弟端点）；
+  支持 `--segment <段>` / `--out diff.json` / `--inventory <清单>`；
+  已登记进契约的 18 个 CLI 条目参与 `-h` 冒烟。
+
+### 实验
+
+- **`TestCases/AiProxyTest.py`（+ 同名 `.md`）** —— AI 网关本地流式代理：
+  Flask 把客户端请求原样转发到上游 `service.591iq.cn` 并把响应按 SSE 流回
+  （不做缓冲/解析，避免「全部算完再一次性返回」）；token 走 argv、**不列入 CLI 名单**、
+  不参与 CI；需额外安装 `flask`。
+- **AGENTS「兄弟清扫」纪律** —— 从某个 chunk 建模块时，必须把该 chunk 内全部
+  `"/xxx"` 路径字面量列出来逐条分诊（封装 / 留档 / 排除），再用覆盖审计复跑。
+  教训直接来自本区间：评论四口取了，同 chunk 的 `favour`/`collect` 就被挑剩了。
+  配套在 MEMORY 留了「点赞漏检」复盘。
+
+### 文档
+
+- CHANGELOG 本段即 v1.1 之后累计变更的对外汇总；MEMORY 同步复盘记录；
+  AGENTS 结构清单补 `ApiCoverageAudit.py`、`AiProxyTest.py` 两项说明。
 
 ---
 
