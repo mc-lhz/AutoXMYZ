@@ -109,7 +109,7 @@ GET 拼 query、POST 走 form body，请求头 `AccessToken: <ssoToken>`、`clie
 连授权开关都没有留（留后门等于「藏起来但没关掉」）。
 **本工具不再封装、不再测试、不再文档化其调用方式**；`type=2` 仍是平台侧的口径
 问题，**已作为通报 `RISK-2026-1006-01` 问题一递交学校，预计 2026-10-13 起进入处置流程
-（见 MEMORY §4.1）；服务端修复前风险不变**。需要某人 `userId` 时用
+（见 AGENTS.md 开发记忆 §4.1）；服务端修复前风险不变**。需要某人 `userId` 时用
 `records(type_="2")` 班级 feed。
 
 ⚠️ **隐私信息暴露面**：`type=1` 每条命中项内嵌 `userInf`（原始 51 字段），
@@ -175,7 +175,7 @@ GET 拼 query、POST 走 form body，请求头 `AccessToken: <ssoToken>`、`clie
 > ⚠️ **「兜底比学校宽 12 倍」是被推翻的旧结论**。2026-10-06 实测：兜底分支与 `type=3`（学校）
 > 的 `count` 完全相等（倍数 **1.00**），首条记录 id 摘要一致——两者是**同一数据集**。
 > 12 倍关系真实存在，但它是**年段(1.2万) ÷ 学校(14.6万)**，不是「兜底 ÷ 学校」。
-> 旧记录误把 `4`=年段当成学校、把 `3`=学校当成非法值。详见 MEMORY.md §6.7。
+> 旧记录误把 `4`=年段当成学校、把 `3`=学校当成非法值。详见 AGENTS.md 开发记忆 §6.7。
 >
 > ⚠️ `count` 会随记录增长漂移（10-05 的 146,020 → 10-06 的 146,021），**别把具体数字当断言**。
 > 判定分支归属要比记录 id，不能比 count。
@@ -381,7 +381,7 @@ python tools/RecordCenter/PublishActivity.py --title "标题" --content-file bod
 
 ⚠️ 两道闸门都只防误用、**不是安全控制**——绕过本模块直接发 HTTP 一样拿全量数据。
 **已作为通报 `RISK-2026-1006-01` 问题二递交学校**（预计 2026-10-13 起进入处置流程，
-见 MEMORY §4.1），**服务端修复前风险不变**，真正的修复要在服务端。
+见 AGENTS.md 开发记忆 §4.1），**服务端修复前风险不变**，真正的修复要在服务端。
 | POST | `/record/queryClassifyList` / `/record/queryHistoryBookList` | `{}` / `{}` | 分类 `[1人文科学,2自然科学]`；历史书籍**两层** `data.list.list[]`，行含 `recordContent(null)/recordRead/recordBook{name,writer,intro}` |
 
 ✅ 学生端**确有删除接口**（2026-10-04 确认并实测，见下方「删除写实记录」一节）。注意命名是 `del` 前缀不是 `delete`——只在前端 app.js 里 grep `deleteRecord` 会漏掉它。

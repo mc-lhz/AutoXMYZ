@@ -19,7 +19,7 @@ description: 厦门一中三站聚合工具集（同一组学号密码）：Camp
 
 <system-reminder>
 本技能由「子技能分区」构成：每个子技能位于 `references/<子技能名>/`，各自保留完整的
-`SUBSKILL.md` 与 `tools/`、`reference/`（XinYiWo 另有 AGENTS/MEMORY/CHANGELOG/VERSION）目录树。
+`SUBSKILL.md` 与 `tools/`、`reference/`（XinYiWo 另有 AGENTS（含变更历史与开发记忆）/VERSION）目录树。
 子技能内部的相对路径一律以它自己所在的 `references/<子技能名>/` 为基准解析——读到
 `tools/x.py`、`reference/y.md` 时，实际指向 `references/<子技能名>/tools/x.py`，不要退回到
 本技能根目录查找，也不要再加一层 `references/` 前缀。

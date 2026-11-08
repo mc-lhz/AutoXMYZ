@@ -379,7 +379,7 @@ python tools/TestCases/TestApiReadOnly.py -u .. -p .. --upload   # 53 项：追�
 
 ⚠️ count 会随记录增长漂移（2026-10-05 快照 146,020 → 10-06 为 146,021），**别把具体数字当断言**，要现值就跑 `TestApiReadOnly.py`。
 
-⚠️ **平台是每校独立部署的多租户**。`/search/search`、`/record/queryRecordList` 等数据查询端点的请求里**不含任何学校标识**，租户完全由 `AccessToken` 决定；实测全部数据的 `schId` 恒为 `200`（厦门一中）。详见 MEMORY.md「schId 与租户边界」。
+⚠️ **平台是每校独立部署的多租户**。`/search/search`、`/record/queryRecordList` 等数据查询端点的请求里**不含任何学校标识**，租户完全由 `AccessToken` 决定；实测全部数据的 `schId` 恒为 `200`（厦门一中）。详见 AGENTS.md「开发记忆 · schId 与租户边界」。
 
 ## 允许的操作 / 需确认的操作 / 不再提供
 

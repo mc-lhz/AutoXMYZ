@@ -15,7 +15,7 @@ tools/
 references/
   CampusNet/{SUBSKILL.md, AGENTS.md, tools/, reference/}
   XmyzStudent/{SUBSKILL.md, AGENTS.md, tools/, reference/}
-  XinYiWo/{SUBSKILL.md, AGENTS.md, MEMORY.md, CHANGELOG.md, README.md, VERSION, tools/, reference/}
+  XinYiWo/{SUBSKILL.md, AGENTS.md（含变更历史与开发记忆）, README.md, VERSION, tools/, reference/}
 ```
 
 **为什么分区而不是合并 `tools/`**：三边都用裸包名导入（`Access`/`Common`/`StudentBase`/
@@ -100,7 +100,7 @@ python tools/TestCases/TestAggregate.py     # 三子树存在/无游离 SKILL.md
    根 description 必须点名站点与系统边界，并声明数据不互通。
 5. **git ls-files 作用域**：在子树内运行是 cwd 相对（无前缀），但文件必须先 `git add`
    才能被 PackSkill 收集。
-6. 各子树的历史坑见其 `AGENTS.md`（CampusNet 11 条、XmyzStudent 5 条、XinYiWo MEMORY.md）。
+6. 各子树的历史坑见其 `AGENTS.md`（CampusNet 11 条、XmyzStudent 5 条、XinYiWo 见其「开发记忆」并入段）。
 
 ## 安全纪律
 
