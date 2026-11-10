@@ -43,7 +43,18 @@ def newSession():
 
 
 def serverTime(s) -> int:
-    return int(s.get(BASE + "/system/system!currentTime.action", timeout=10).text.strip())
+    """预热/取服务器时间。jcret 非 JSON（404/风控 HTML/503）只是瞬时抖动，
+    不该崩掉登录流程——best-effort，取不到返回 0。"""
+    try:
+        r = s.get(BASE + "/system/system!currentTime.action", timeout=10)
+        t = r.text.strip()
+        if r.status_code == 200 and t.isdigit():
+            return int(t)
+        print("[warn] serverTime 返回 HTTP %s 非 JSON（跳过预热）" % r.status_code,
+              file=sys.stderr)
+    except Exception as e:  # noqa: BLE001 网络抖动一律不致命
+        print("[warn] serverTime 探测失败（跳过预热）: %s" % e, file=sys.stderr)
+    return 0
 
 
 def fetchCaptcha(s, out="jcaptcha.jpg") -> str:
@@ -51,6 +62,9 @@ def fetchCaptcha(s, out="jcaptcha.jpg") -> str:
     r.raise_for_status()
     with open(out, "wb") as f:
         f.write(r.content)
+    # 验证码与 JSESSIONID 强绑定：把取图会话落盘为同名 .sid.txt，供 --code 提交复用。
+    with open(out + ".sid.txt", "w", encoding="utf-8") as f:
+        f.write(s.cookies.get("JSESSIONID") or "")
     return out
 
 
@@ -91,8 +105,11 @@ def ocrCaptcha(path: str) -> str:
     try:
         from rapidocr_onnxruntime import RapidOCR
         ocr = RapidOCR()
-    except Exception:
+    except ModuleNotFoundError as e:
         ocr = None
+        print("[ocr] 未安装验证码依赖 %s（pip install %s 可启用自动识别）；"
+              "当下请改用 vision 看图登录" % (e.name, e.name),
+              file=sys.stderr)
     cands = []
     if ocr:
         for (t, s), f in made:
@@ -123,8 +140,15 @@ def portalLogin(s, username, password, captchaCode) -> bool:
         print("[login] 被拒:", r.url, file=sys.stderr)
         return False
     try:
-        m = s.post(BASE + "/account/user!getGrantedMenuTree.action",
-                   data={}, timeout=10).json()
+        rsp = s.post(BASE + "/account/user!getGrantedMenuTree.action",
+                     data={}, timeout=10)
+        ctype = rsp.headers.get("Content-Type", "")
+        if "json" not in ctype:
+            # 服务端瞬时 503/风控 HTML：不是凭据问题，报可读原因。
+            print("[login] 菜单树返回非 JSON（HTTP %s，服务端瞬时不可用？请稍后重试）"
+                  % rsp.status_code, file=sys.stderr)
+            return False
+        m = rsp.json()
     except Exception as e:
         print("[login] 菜单树探测异常:", e, file=sys.stderr)
         return False
@@ -135,11 +159,21 @@ def portalLogin(s, username, password, captchaCode) -> bool:
 
 
 def saveSession(cookies: dict, path: str = SESSION_FILE) -> str:
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
+    try:
+        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+        target = path
+    except OSError as e:
+        import tempfile
+        fallback = os.path.join(tempfile.gettempdir(), "AutoXMYZ",
+                                os.path.basename(path) or "session.json")
+        print("[!] 数据目录不可写（%s），会话降级保存到 %s"
+              "（可用 AUTOMXYZ_SESSION 环境变量固定位置）" % (e, fallback), file=sys.stderr)
+        os.makedirs(os.path.dirname(fallback), exist_ok=True)
+        target = fallback
+    with open(target, "w", encoding="utf-8") as f:
         json.dump({"cookies": cookies, "saved_at": time.strftime("%Y-%m-%d %H:%M:%S")},
                   f, ensure_ascii=False, indent=2)
-    return path
+    return target
 
 
 def loginForSession(username, password, retry=6, captchaFile="jcaptcha.jpg", out=None):
@@ -170,10 +204,14 @@ def cmdPassword(a) -> int:
         return 3
     d = s.post(BASE + "/account/user!status.action", timeout=10)
     try:
-        j = d.json()
-        print("[身份] loginName=%s 座位=%s" % (j.get("loginName"), j.get("seatNumber")))
-    except Exception:
-        pass
+        if "json" not in d.headers.get("Content-Type", ""):
+            print("[身份] status 端点非 JSON（HTTP %s，登录已成功，跳过身份显示）"
+                  % d.status_code)
+        else:
+            j = d.json()
+            print("[身份] loginName=%s 座位=%s" % (j.get("loginName"), j.get("seatNumber")))
+    except Exception as e:  # noqa: BLE001 身份显示已是锦上添花
+        print("[身份] 解析异常（登录已成功）: %s" % e)
     return 0
 
 
@@ -184,7 +222,12 @@ def cmdJsessionid(a) -> int:
     s = newSession()
     s.cookies.set("JSESSIONID", raw, domain="xmyz.xmedu.cn", path="/")
     try:
-        j = s.post(BASE + "/account/user!status.action", timeout=10).json()
+        d = s.post(BASE + "/account/user!status.action", timeout=10)
+        if "json" not in d.headers.get("Content-Type", ""):
+            print("[x] status 返回非 JSON（HTTP %s）——服务端可能瞬时不可用，"
+                  "请稍后重试而不是重灌会话" % d.status_code, file=sys.stderr)
+            return 4
+        j = d.json()
     except Exception:
         print("[x] 会话无效（已过期或复制不全），请重新登录", file=sys.stderr)
         return 4
@@ -199,9 +242,25 @@ def cmdJsessionid(a) -> int:
 
 
 def cmdVision(a) -> int:
-    """取验证码图并等待 --code 提交（供有读图能力的调用方使用）。"""
+    """取验证码图并等待 --code 提交（供有读图能力的调用方使用）。
+    验证码与取图会话强绑定：--code 分支自动复用取图时落盘的 JSESSIONID
+    （<captchaFile>.sid.txt），两步走才不是"必定失败"。"""
     if a.code:
         s = newSession()
+        sid_file = a.captchaFile + ".sid.txt"
+        if os.path.exists(sid_file):
+            with open(sid_file, encoding="utf-8") as f:
+                sid = f.read().strip()
+            if sid:
+                s.cookies.set("JSESSIONID", sid, domain="xmyz.xmedu.cn", path="/")
+                print("[i] 复用取图会话 JSESSIONID=%s…" % sid[:6])
+            else:
+                print("[!] 会话暂存为空（%s），验证码很可能已与取图会话失联" % sid_file,
+                      file=sys.stderr)
+        else:
+            print("[!] 未找到取图会话暂存 %s —— 请勿在取图与提交之间运行其他会话操作"
+                  "（验证码与 JSESSIONID 强绑定，跨会话提交必被拒 error=2）"
+                  % sid_file, file=sys.stderr)
         if not portalLogin(s, a.username, a.password, a.code):
             return 2
         p = saveSession(s.cookies.get_dict(), getattr(a, "out", None) or SESSION_FILE)
@@ -212,6 +271,7 @@ def cmdVision(a) -> int:
     p = fetchCaptcha(s, a.captchaFile)
     print("验证码图片：%s" % p)
     print("识别后执行：python LoginSession.py vision -u <账号> -p <密码> --code <4~5位>")
+    print("（会话已随取图暂存 %s.sid.txt，提交时自动复用）" % p)
     return 0
 
 

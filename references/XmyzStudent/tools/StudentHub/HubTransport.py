@@ -101,12 +101,23 @@ class HubHttp(object):
     @staticmethod
     def saveSession(doc: dict, path: str = None) -> str:
         path = path or SESSION_FILE
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+        try:
+            os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+            target = path
+        except OSError as e:
+            import tempfile
+            fallback = os.path.join(tempfile.gettempdir(), "AutoXMYZ",
+                                    os.path.basename(path) or "hub_session.json")
+            print("[!] 数据目录不可写（%s），会话降级保存到 %s"
+                  "（可用 AUTOMXYZ_HUB_SESSION 环境变量固定位置）" % (e, fallback),
+                  file=sys.stderr)
+            os.makedirs(os.path.dirname(fallback), exist_ok=True)
+            target = fallback
         doc = dict(doc)
         doc["savedAt"] = time.strftime("%Y-%m-%d %H:%M:%S")
-        with open(path, "w", encoding="utf-8") as f:
+        with open(target, "w", encoding="utf-8") as f:
             json.dump(doc, f, ensure_ascii=False, indent=1)
-        return path
+        return target
 
     def setToken(self, token: str):
         self._token = token

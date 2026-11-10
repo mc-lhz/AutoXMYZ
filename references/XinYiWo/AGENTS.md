@@ -249,6 +249,13 @@ requests、rapidocr-onnxruntime（验证码 OCR）、numpy + Pillow（预处理�
 自 v1.1 起累计 7 个提交、14 个文件、+498/−11。**纯增量、无破坏性变更。**
 v1.2 已发布（tag `v1.2`），`VERSION` 已对齐；契约的「VERSION 与最近 tag 一致」检查转 PASS。
 
+#### 维护（2026-11，登录链路健壮性）
+
+- 门户登录的菜单树探测改为**先判 HTTP status + Content-Type**：瞬时 503/风控 HTML
+  报“服务端瞬时不可用，请稍后重试”，不再伪装成“凭据/会话错”。
+- `verify(ssoToken)` 响应非 JSON 时返回可读原因（含 HTTP 码），不再是裸
+  `JSONDecodeError` 文案。
+
 #### 新增
 
 - **互动补全：点赞与收藏（三组开关）** —— 新增 `recordFavours(recordId)`（点赞名单）、

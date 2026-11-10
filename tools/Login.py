@@ -40,8 +40,30 @@ def _userDataDir():
 
 DATA = _userDataDir()
 CAMPUS_SESSION = os.environ.get("AUTOMXYZ_SESSION") or os.path.join(DATA, "session.json")
-IQ_TOKEN = os.path.join(DATA, "iq_token.json")
+IQ_TOKEN = os.environ.get("AUTOMXYZ_IQ_TOKEN") or os.path.join(DATA, "iq_token.json")
 HUB_SESSION = os.environ.get("AUTOMXYZ_HUB_SESSION") or os.path.join(DATA, "hub_session.json")
+
+
+def ensureDataDir() -> str:
+    """保证会话目录可写；不可写（如 ~/.local/share 归属他人）时降级 %TEMP% 并提示。"""
+    global DATA
+    global CAMPUS_SESSION, IQ_TOKEN, HUB_SESSION
+    try:
+        os.makedirs(DATA, exist_ok=True)
+        probe = os.path.join(DATA, ".write_test")
+        with open(probe, "w", encoding="utf-8") as f:
+            f.write("x")
+        os.remove(probe)
+        return DATA
+    except OSError as e:
+        import tempfile
+        DATA = os.path.join(tempfile.gettempdir(), "AutoXMYZ")
+        os.makedirs(DATA, exist_ok=True)
+        CAMPUS_SESSION = os.environ.get("AUTOMXYZ_SESSION") or os.path.join(DATA, "session.json")
+        IQ_TOKEN = os.environ.get("AUTOMXYZ_IQ_TOKEN") or os.path.join(DATA, "iq_token.json")
+        HUB_SESSION = os.environ.get("AUTOMXYZ_HUB_SESSION") or os.path.join(DATA, "hub_session.json")
+        print("[!] 数据目录不可写（%s），已降级到 %s" % (e, DATA), file=sys.stderr)
+        return DATA
 
 SUBS = {
     "campusnet": os.path.join(ROOT, "references", "CampusNet"),
@@ -106,7 +128,7 @@ def loginXinyiwo(u="", p="", ocr=6):
         print("[!] XinYiWo 未取得 ssoToken（门户会话可能失效）", file=sys.stderr)
         return False
     token = m.group(1)
-    os.makedirs(DATA, exist_ok=True)
+    ensureDataDir()
     with open(IQ_TOKEN, "w", encoding="utf-8") as f:
         json.dump({"token": token, "savedAt": __import__("time").strftime("%Y-%m-%d %H:%M:%S")},
                   f, ensure_ascii=False, indent=1)

@@ -67,6 +67,9 @@ tools/
 4. **同名方法覆盖**：MRO 同名即丢端点；TestHub 的「无方法覆盖」闸盯住
 5. **模板字面量基址**：`${ratingConst0}` 等占位基址纯「/开头」正则抓不到；
    提取须解析常量取并集
+6. **数据目录不可写要降级**（2026-11 修复）：云主机 `~/.local/share` 归属他人时
+   HubSession 曾直接 PermissionError；`HubHttp.saveSession` 现降级
+   `%TEMP%\AutoXMYZ\` 并 WARN（环境变量 `AUTOMXYZ_HUB_SESSION` 可固定）。
 
 ## 常用命令
 

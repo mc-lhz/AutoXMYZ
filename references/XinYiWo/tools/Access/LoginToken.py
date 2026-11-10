@@ -94,8 +94,14 @@ def portalLogin(s, username, password, captchaCode) -> bool:
         print("[login] 被拒:", r.url, file=sys.stderr)
         return False
     try:
-        m = s.post(BASE + "/account/user!getGrantedMenuTree.action",
-                   data={}, timeout=10).json()
+        rsp = s.post(BASE + "/account/user!getGrantedMenuTree.action",
+                     data={}, timeout=10)
+        ctype = rsp.headers.get("Content-Type", "")
+        if "json" not in ctype:
+            print("[login] 菜单树返回非 JSON（HTTP %s，服务端瞬时不可用？请稍后重试）"
+                  % rsp.status_code, file=sys.stderr)
+            return False
+        m = rsp.json()
     except Exception as e:                       # noqa: BLE001
         print("[login] 菜单树探测异常:", e, file=sys.stderr)
         return False
@@ -296,6 +302,9 @@ def verify(token: str):
             "https://service.591iq.cn/account/loginBySSOToken",
             data={"request": json.dumps({"data": {"ssoToken": token}})},
             headers={"clientos": "pc"}, timeout=15)
+        if "json" not in r.headers.get("Content-Type", ""):
+            return False, "verify: 服务端响应非 JSON（HTTP %s，瞬时不可用？请稍后重试）" \
+                % r.status_code
         d = r.json()
     except Exception as e:                       # noqa: BLE001
         return False, f"verify 异常: {e}"

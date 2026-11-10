@@ -66,6 +66,19 @@ tools/
 10. **网关限流伪装成 404/500**：连发 ~70 请求后 502，探测必须二遍慢速重探
 11. `transcript!detail`、`member!readByStudent`、`activity-record!readByTeacher`
     等为线上 404（GONE）——调用前看 md 标注
+12. **登录链路的"非 JSON 偶发"家族**（2026-11 修复）：serverTime/menuTree/status
+    都可能撞 404 HTML/503/风控拦截——登录路径**不走 `_call`**，必须自己先判
+    status+Content-Type；裸 `int(text)`/`.json()` 会把瞬时报废成“凭据/会话错”。
+    修复口径：serverTime best-effort 返回 0；status 非时报“瞬时不可用”而非“会话无效”。
+13. **验证码与 JSESSIONID 强绑定**（2026-11 修复）：vision 取图与 `--code` 提交
+    原先各自 newSession，两步走必失败（error=2）。取图时落盘
+    `<captchaFile>.sid.txt`，提交分支自动复用——勿再各开会话。
+14. **OCR 依赖缺失不致命**（2026-11 修复）：`ocrCaptcha` 只捕获
+    `ModuleNotFoundError`，缺 rapidocr 时明示“pip install … 或改用 vision”；
+    其余异常照抛。不强制安装 OCR。
+15. **数据目录不可写要降级**（2026-11 修复）：`saveSession` 失败时降级
+    `%TEMP%\AutoXMYZ\` 并 WARN 提示（Linux 云主机 `~/.local/share` 归属他人
+    时曾直接 PermissionError）。
 
 ## 常用命令
 
