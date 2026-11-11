@@ -9,4 +9,4 @@
 `workStudy` / `learningOutcome` / `createInvention` / `typicalCase` /
 `partyActivity` / `communityActivity`
 
-注：本域与 591iqAutomatic 覆盖的新壹我综评系统（591iq.cn）是**两套独立系统**，数据不互通。
+注：本域与 XinYiWo 子技能（原 591iqAutomatic，上游已归档）覆盖的新壹我综评系统（591iq.cn）是**两套独立系统**，数据不互通。

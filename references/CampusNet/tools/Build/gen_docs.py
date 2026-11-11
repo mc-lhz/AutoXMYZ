@@ -85,7 +85,7 @@ DOCS = {
 `workStudy` / `learningOutcome` / `createInvention` / `typicalCase` /
 `partyActivity` / `communityActivity`
 
-注：本域与 591iqAutomatic 覆盖的新壹我综评系统（591iq.cn）是**两套独立系统**，数据不互通。
+注：本域与 XinYiWo 子技能（原 591iqAutomatic，上游已归档）覆盖的新壹我综评系统（591iq.cn）是**两套独立系统**，数据不互通。
 """,
 
 "tools/CommunityCenter/VolunteerRead.py": """社团（`community/`，111 端点，全站最大域）与志愿服务（`volunteer/`，19 端点）。

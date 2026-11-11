@@ -1,6 +1,6 @@
 """彩色分等级日志（内部诊断用；默认 stderr+WARNING，单例 `Log`）。
 
-与 591iqAutomatic 的 Common/Logcat.py 同契约：结论一律 print 走 stdout，
+与 XinYiWo 子技能（原 591iqAutomatic，上游已归档）的 Common/Logcat.py 同契约：结论一律 print 走 stdout，
 内部诊断一律走这里走 stderr，二者不得混用。
 """
 import os

@@ -84,8 +84,8 @@ python tools/TestCases/TestAggregate.py     # 三子树存在/无游离 SKILL.md
 
 - 统一发版：根 `.github/workflows/release.yml` 打单包 `AutoXMYZ.zip`
   （根 SKILL/AGENTS/README/VERSION + `references/**` + `tools/Login.py`）。
-- XinYiWo 不再单独发 `591iqAutomatic.zip`（其子树内 `tools/Release/PackSkill.py`
-  仍可独立打包自检，但不再挂 Release）。
+- XinYiWo 不再单独发版（历史产物名 `591iqAutomatic.zip`；其子树内 `tools/Release/PackSkill.py`
+  改产 `XinYiWo.zip` 供独立打包自检，但不再挂 Release）。
 - CI 用内存编译（**不用 `compileall`**，避免 `__pycache__`），
   `PYTHONDONTWRITEBYTECODE=1`，ubuntu+windows，Python 3.11（声明 3.9+）。
 

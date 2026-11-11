@@ -35,7 +35,7 @@ tools/
   TestCases/TestRecordRead.py     13 项
   TestCases/TestContract.py       仓库契约与卫生审计（离线，无网络无凭据）
   TestCases/ApiCoverageAudit.py   端点覆盖审计（bundle 清单 vs 封装集，同族缺口报告）
-  Release/PackSkill.py            技能包打包（591iqAutomatic.zip，根目录结构）
+  Release/PackSkill.py            技能包打包（XinYiWo.zip，根目录结构；仅自检，不再单独发版）
   Common/Logcat.py                彩色分等级日志（内部诊断用；默认 stderr+WARNING，单例 `Log`）
   Feedback/FeedbackClient.py      反馈接口投递（独立服务，非 591iq 网关，不注册门面）
   Feedback/Ticket.py              工单HTML 模板 + 学号脱敏 + 投递前敏感信息闸门
@@ -205,7 +205,7 @@ python tools/Export/ExportSummaryList.py --token <ssoToken>     # 活动总结�
   3. `git tag -a <v> -m "<v>"` → `git push origin <v>`
   4. 在 GitHub 网页端建 Release、勾 **Pre-release**、粘贴说明、点发布
      → `.github/workflows/release.yml` 会在 `release: published` 时自动打包
-       并把 `591iqAutomatic.zip` 挂为该 Release 的附件（用 runner 自带 `GITHUB_TOKEN`，
+       并把 `XinYiWo.zip` 挂为该 Release 的附件（用 runner 自带 `GITHUB_TOKEN`，
        本地不需要任何令牌；预发布同样会触发）
 - 命名：`v0.1-betaN`（预发布）→ `v0.1.0`（首个可用版）→ **`v1.0.0` 起走严格 SemVer**，
   即 `MAJOR.MINOR.PATCH`，破坏性改动升 MAJOR，新增能力升 MINOR，修 bug 升 PATCH。
@@ -219,8 +219,8 @@ python tools/Export/ExportSummaryList.py --token <ssoToken>     # 活动总结�
   `reference/` 未超 150 KB；线上回归（`TestApiReadOnly` / `TestRecordRead`）在本地跑
 - **打包规则**（实现在 `Release/PackSkill.py`，规则改这里，别改 workflow）：
   · 文件来源 `git ls-files`，额外排除 `.github/` 与 `.gitignore`（流水线配置与 git 内部约定不必随包分发）
-  · 产物固定名 `591iqAutomatic.zip`，**根目录结构**：`SKILL.md` / `tools/` / `reference/` 直接在顶层，**不套外层目录**（与 GitHub 自动源码包不同）
-  · 因此安装要自己先建目录：`mkdir -p ~/.config/opencode/skills/591iqAutomatic` 再解压进去；这一步必须写进 Release 说明
+  · 产物固定名 `591iqAutomatic.zip`（历史；现包名 `XinYiWo.zip`），**根目录结构**：`SKILL.md` / `tools/` / `reference/` 直接在顶层，**不套外层目录**（与 GitHub 自动源码包不同）
+  · 因此安装要自己先建目录：`mkdir -p ~/.config/opencode/skills/<技能目录名>` 再解压进去；这一步必须写进 Release 说明
   · 打包后自检：根目录必备齐全、未套层、包内无 .git/.github/__pycache__/*.pyc/*.xlsx/图片，
     并输出 **sha256**；Release 说明注明「以 tag 为准，zip 是同快照的便利副本」
   · `--version-check` 强制 VERSION 与 tag 逐字相同，`--require-clean` 拒绝把本地脏改动打进包
@@ -728,8 +728,9 @@ schoolChange(l){ this.$http.post("/account/switch", {data:{schId:l}}).then(l=>{
 
 ### 七、环境与纪律
 
-- 仓库：`C:\Users\Administrator\.config\opencode\skills\591iqAutomatic`
-- 远端：`https://github.com/mc-lhz/591iqAutomatic`
+- 仓库（唯一活体）：本子树，随三站聚合仓 `mc-lhz/AutoXMYZ` 发布，会话/token 不入库
+- 上游 `mc-lhz/591iqAutomatic` 已**归档冻结**（v1.2，只读，2026-11-08）：仅作历史参考，
+  不再回同步；上述独立发版流程只对历史版本成立，当前走聚合仓统一 Release（AutoXMYZ.zip）
 - 凭据、token、姓名、手机号、userId、真实记录 ID **一律不入库**；临时数据只放 `%TEMP%\591iq_scratch`。
 - 写入类测试**必须按序逐条跑**，否则前后条数快照互相干扰。
 - 只删本次会话创建的记录；既有记录清单用快照文件固化，删除前逐一比对。

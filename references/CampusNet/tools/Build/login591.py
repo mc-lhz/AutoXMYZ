@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""复用 591iqAutomatic 的 OCR 与登录契约,登录 xmyz.xmedu.cn 并导出菜单树。
+"""复用 XinYiWo 子技能（原 591iqAutomatic，上游已归档）的 OCR 与登录契约,
+登录 xmyz.xmedu.cn 并导出菜单树。
 
   python login591.py -u <学号> -p <密码> [--retry 6] [--out .]
 """

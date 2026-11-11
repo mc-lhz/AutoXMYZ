@@ -26,7 +26,7 @@ from Access.HttpTransport import (  # noqa: E402
     BASE, UA, SESSION_FILE, sha1, XmyzError)
 
 # OCR 变体池：`(阈值, 放大倍数)`，三者强度接近但预处理不同，投票才有效。
-# 与 591iqAutomatic 同源同参——两个系统是同一个门户，实测有效。
+# 与 XinYiWo 子技能（原 591iqAutomatic，上游已归档）同源同参——两个系统是同一个门户，实测有效。
 CAPTCHA_VARIANTS = [(170, 3), (180, 4), (200, 4)]
 DIGIT2LETTER = str.maketrans("0123456789", "olzeasgbgg")
 

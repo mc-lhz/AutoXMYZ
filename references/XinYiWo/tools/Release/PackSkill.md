@@ -1,14 +1,14 @@
 # PackSkill（技能包打包）
 
-把仓库打成可分发的 `591iqAutomatic.zip`。**根目录结构**：`SKILL.md`、`tools/`、
+把仓库打成可分发的 `XinYiWo.zip`。**根目录结构**：`SKILL.md`、`tools/`、
 `reference/`、`AGENTS.md`、`README.md`、`VERSION` 直接位于压缩包顶层，**不套外层目录**。
 
-这与 GitHub 自动生成的源码包不同——那个是 `591iqAutomatic-<tag>/…` 套一层。
+这与 GitHub 自动生成的源码包不同——那个是 `XinYiWo-<tag>/…` 套一层。
 代价是安装要多一步：先建目录再解压。
 
 ```bash
-mkdir -p ~/.config/opencode/skills/591iqAutomatic
-# 再把 591iqAutomatic.zip 解压进这个目录
+mkdir -p ~/.config/opencode/skills/XinYiWo
+# 再把 XinYiWo.zip 解压进这个目录
 ```
 
 ## 何时会自动跑
@@ -23,10 +23,10 @@ mkdir -p ~/.config/opencode/skills/591iqAutomatic
 
 ```bash
 python tools/Release/PackSkill.py --list                      # 只看会打进哪些文件
-python tools/Release/PackSkill.py                             # 默认 %TEMP%\591iqAutomatic.zip
-python tools/Release/PackSkill.py --out dist/591iqAutomatic.zip
+python tools/Release/PackSkill.py                             # 默认 %TEMP%\XinYiWo.zip
+python tools/Release/PackSkill.py --out dist/XinYiWo.zip
 python tools/Release/PackSkill.py --require-clean --version-check <tag> \
-        --out dist/591iqAutomatic.zip                          # CI 发版用；<tag> 传 tag 名，如 v0.1-beta2
+        --out dist/XinYiWo.zip                                # CI 发版用；<tag> 传 tag 名，如 v0.1-beta2
 ```
 
 > `--version-check` 收的是 **tag 名**（与仓库根 `VERSION` 逐字比对，不是"大于等于"）。
@@ -38,7 +38,7 @@ python tools/Release/PackSkill.py --require-clean --version-check <tag> \
 
 | 参数 | 说明 |
 |---|---|
-| `--out` | 输出 zip 路径，默认 `%TEMP%\591iqAutomatic.zip` |
+| `--out` | 输出 zip 路径，默认 `%TEMP%\XinYiWo.zip` |
 | `--list` | 只列出将打包的文件与体积，不写 zip |
 | `--require-clean` | 有未提交的**已跟踪**改动就拒绝打包（防把本地脏内容打进包）；CI 用 |
 | `--version-check` | 要求 `VERSION` 内容与该值**逐字相同**（传 tag 名），否则失败 |

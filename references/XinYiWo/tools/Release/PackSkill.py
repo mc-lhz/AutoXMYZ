@@ -1,9 +1,9 @@
-"""把仓库打成可分发的技能包 `591iqAutomatic.zip`（**根目录结构，不套外层目录**）。
+"""把仓库打成可分发的技能包 `XinYiWo.zip`（**根目录结构，不套外层目录**）。
 
-与 GitHub 自动生成的源码包不同：那个是 `591iqAutomatic-<tag>/…` 套一层，
+与 GitHub 自动生成的源码包不同：那个是 `XinYiWo-<tag>/…` 套一层，
 本脚本产出的 zip 里 `SKILL.md` / `tools/` / `reference/` 直接位于根目录。
 代价是安装要自己先建目录再解压：
-    mkdir -p ~/.config/opencode/skills/591iqAutomatic
+    mkdir -p ~/.config/opencode/skills/XinYiWo
     解压本 zip 到该目录
 
 由 `.github/workflows/release.yml` 在 **Release 发布时**自动调用并挂为附件，
@@ -11,10 +11,10 @@
 
 用法：
     python tools/Release/PackSkill.py --list                    # 只看会打进哪些文件
-    python tools/Release/PackSkill.py                           # 默认 %TEMP%\591iqAutomatic.zip
-    python tools/Release/PackSkill.py --out dist/591iqAutomatic.zip
+    python tools/Release/PackSkill.py                           # 默认 %TEMP%\XinYiWo.zip
+    python tools/Release/PackSkill.py --out dist/XinYiWo.zip
     python tools/Release/PackSkill.py --require-clean --version-check <tag> \\
-            --out dist/591iqAutomatic.zip                        # CI 发版用；<tag> 传 tag 名（如 v0.1-beta2）
+            --out dist/XinYiWo.zip                              # CI 发版用；<tag> 传 tag 名（如 v0.1-beta2）
 
 文件来源是 `git ls-files`，所以天然不含 .git / __pycache__ / *.pyc / 验证码图 /
 state / 报告 json / xlsx；另见 EXCLUDE_PREFIXES 与 EXCLUDE_GLOBS。
@@ -39,7 +39,7 @@ ROOT = os.path.dirname(os.path.dirname(_HERE))                # 仓库根
 sys.path.insert(0, os.path.dirname(_HERE))                    # tools/
 from Common.Logcat import Log                                 # noqa: E402
 
-PKG_NAME = "591iqAutomatic.zip"
+PKG_NAME = "XinYiWo.zip"
 # 这些是仓库内部约定/流水线配置，随包分发没有意义
 EXCLUDE_PREFIXES = (".github/",)
 EXCLUDE_EXACT = (".gitignore",)
