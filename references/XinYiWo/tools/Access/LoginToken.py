@@ -70,8 +70,23 @@ def newSession() -> "requests.Session":       # noqa: F821
 
 
 def serverTime(s) -> int:
-    r = s.get(BASE + "/system/system!currentTime.action", timeout=10)
-    return int(r.text.strip())
+    """best-effort：仅做预热探测，值本身可跳过（404/瞬时不可用 → 0，不阻断登录）。"""
+    import requests
+    try:
+        r = s.get(BASE + "/system/system!currentTime.action", timeout=10)
+    except requests.RequestException as e:  # noqa: F821
+        print("[serverTime] 请求失败（跳过预热）:", e, file=sys.stderr)
+        return 0
+    txt = r.text.strip()
+    try:
+        t = int(txt)
+        return t
+    except ValueError:
+        print("[serverTime] 返回 HTTP %s + %s（跳过预热）"
+              % (r.status_code, "非 JSON" if "html" in r.headers.get(
+                  "Content-Type", "").lower() or "<" in txt[:1] else repr(txt[:40])),
+              file=sys.stderr)
+        return 0
 
 
 def fetchCaptcha(s, out="jcaptcha.jpg") -> str:
