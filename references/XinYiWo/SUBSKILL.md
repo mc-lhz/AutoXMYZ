@@ -1,6 +1,6 @@
 ---
 name: XinYiWo
-description: 新壹我综合素质评价系统（www.591iq.cn，福建厦门一中等校）使用教程与工具集。Use when the user mentions 591iq、综合素质评价、综评系统、成长报告、写实记录、成长空间、学生档案、待办任务、ssoToken、#/mock_login，或要查询/导出本人综评数据、任务、荣誉、写实记录，或提交写实记录与活动总结。
+description: 厦门一中新壹我综合素质评价系统Skill与使用教程。Use when the user mentions 新壹我、综合素质评价、综评系统、成长报告、写实记录、成长空间、学生档案、待办任务、ssoToken、#/mock_login，或要查询/导出本人综评数据、任务、荣誉、写实记录，或提交写实记录与活动总结。
 ---
 
 # 新壹我综合素质评价系统（www.591iq.cn）使用指南
@@ -23,8 +23,8 @@ API 网关：`https://service.591iq.cn`。**纯 HTTP 即可完成全部读操作
      （门户登录 + 验证码 OCR，见下节）；
      ② **原站 JSESSIONID** `python tools/Access/LoginToken.py jsessionid --jsessionid <JSESSIONID>`
      （浏览器已登录门户时复制会话 id，免输验证码；会话失效则回落 `302→index.html→404`）；
-     ③ **591iq 302 跳转链接** `python tools/Access/LoginToken.py redirect "<含 token= 的完整链接>"`；
-     ④ **591iq token** `python tools/Access/LoginToken.py token <32hex>`（仅校验）。
+     ③ **新壹我 302 跳转链接** `python tools/Access/LoginToken.py redirect "<含 token= 的完整链接>"`；
+     ④ **新壹我 token** `python tools/Access/LoginToken.py token <32hex>`（仅校验）。
      每种都打印 `ssoToken` + `mock_login` 链接 + `verify: OK/FAIL`（`loginBySSOToken`）。
    - ssoToken 在有效期内**可重复使用**（同一个 token 连续调用多次均 `code:0`）。
 
